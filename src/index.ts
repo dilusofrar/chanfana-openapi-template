@@ -1,11 +1,19 @@
 import { ApiException, fromHono } from "chanfana";
 import { Hono } from "hono";
-import { tasksRouter } from "./endpoints/tasks/router";
 import { ContentfulStatusCode } from "hono/utils/http-status";
-import { DummyEndpoint } from "./endpoints/dummyEndpoint";
+import {
+	ArticleCreate,
+	ArticleList,
+	ArticleRead,
+} from "./endpoints/articles";
+import { AiAssist } from "./endpoints/ai";
+import { ProjectCreate, ProjectList, ProjectRead } from "./endpoints/projects";
+import { UserCreate, UserList, UserRead } from "./endpoints/users";
+import { WebhookReceive } from "./endpoints/webhooks";
+import type { AppEnv } from "./bindings";
 
 // Start a Hono app
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: AppEnv }>();
 
 app.get("/health", (c) =>
 	c.json({
@@ -44,17 +52,24 @@ const openapi = fromHono(app, {
 	schema: {
 		info: {
 			title: "UbuntuCode API",
-			version: "1.0.0",
-			description: "OpenAPI documentation for api.ubuntucode.com.",
+			version: "2.0.0",
+			description:
+				"Backend API for UbuntuCode projects, articles, webhooks, users, and AI workflows.",
 		},
 	},
 });
 
-// Register Tasks Sub router
-openapi.route("/tasks", tasksRouter);
-
-// Register other endpoints
-openapi.post("/dummy/:slug", DummyEndpoint);
+openapi.get("/users", UserList);
+openapi.post("/users", UserCreate);
+openapi.get("/users/:id", UserRead);
+openapi.get("/projects", ProjectList);
+openapi.post("/projects", ProjectCreate);
+openapi.get("/projects/:slug", ProjectRead);
+openapi.get("/articles", ArticleList);
+openapi.post("/articles", ArticleCreate);
+openapi.get("/articles/:slug", ArticleRead);
+openapi.post("/webhooks/events", WebhookReceive);
+openapi.post("/ai/assist", AiAssist);
 
 // Export the Hono app
 export default app;

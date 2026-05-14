@@ -9,6 +9,9 @@
 		"enabled": true,
 		"head_sampling_rate": 1
 	},
+	"vars": {
+		"ENVIRONMENT": "production"
+	},
 	"routes": [
 		{
 			"pattern": "api.ubuntucode.com",
@@ -22,5 +25,22 @@
 			"database_id": "c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b",
 			"migrations_dir": "./migrations"
 		}
-	]
+	],
+	"env": {
+		"dev": {
+			"name": "chanfana-openapi-template-dev",
+			"workers_dev": true,
+			"vars": {
+				"ENVIRONMENT": "development"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "openapi-template-db",
+					"database_id": "c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b",
+					"migrations_dir": "./migrations"
+				}
+			]
+		}
+	}
 }

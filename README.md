@@ -2,15 +2,37 @@
 
 Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, generated OpenAPI documentation, D1, and Vitest integration tests.
 
-## Endpoints
+## Public Endpoints
 
-- `GET /health` returns the service health status.
-- `GET /` serves the OpenAPI documentation UI.
+- `GET /health` returns service health.
+- `GET /` serves Swagger/OpenAPI documentation.
 - `GET /openapi.json` serves the generated OpenAPI schema.
-- `POST /dummy/:slug` is a typed example endpoint.
-- `/tasks` exposes the D1-backed task CRUD example.
+- `GET /projects` lists projects.
+- `GET /projects/:slug` reads one project.
+- `GET /articles` lists articles.
+- `GET /articles/:slug` reads one article.
+- `GET /users` lists users.
+- `GET /users/:id` reads one user.
+
+## Protected Endpoints
+
+Protected routes require the `x-api-key` header.
+
+- `POST /users`
+- `POST /projects`
+- `POST /articles`
+- `POST /webhooks/events`
+- `POST /ai/assist`
 
 ## Local Setup
+
+Create `.dev.vars` for local development:
+
+```ini
+API_KEY=local-dev-key
+```
+
+Then run:
 
 ```bash
 npm install
@@ -18,29 +40,46 @@ npm run seedLocalDb
 npm run dev
 ```
 
+## Cloudflare Setup
+
+Set the production secret before deploying protected routes:
+
+```bash
+npx wrangler secret put API_KEY
+```
+
+The Worker uses:
+
+- Worker name: `chanfana-openapi-template`
+- Custom domain: `api.ubuntucode.com`
+- D1 database: `openapi-template-db`
+- D1 id: `c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b`
+
+## Deployment
+
+The Cloudflare Git integration runs:
+
+```bash
+npm run deploy
+```
+
+That command applies remote D1 migrations and deploys the Worker.
+
 ## Validation
 
 ```bash
 npm audit --omit=dev
 npm run test
+npm run check
 ```
 
-## Cloudflare Setup
+## Domain Model
 
-Before the first deploy, authenticate Wrangler and create the production D1 database:
+The API stores:
 
-```bash
-npx wrangler login
-npx wrangler d1 create api-ubuntucode-db
-```
+- users
+- projects
+- articles
+- webhook events
 
-Copy the generated `database_id` into `wrangler.jsonc`, replacing `00000000-0000-0000-0000-000000000000`.
-
-Then apply migrations and deploy:
-
-```bash
-npx wrangler d1 migrations apply DB --remote
-npm run deploy
-```
-
-The Worker is configured to publish on the custom domain `api.ubuntucode.com`. The zone for `ubuntucode.com` must be active in the same Cloudflare account used by Wrangler.
+The `POST /ai/assist` endpoint is already shaped for AI workflows. It returns a fallback response when no AI provider binding is configured, so the route remains stable while the provider is plugged in later.
