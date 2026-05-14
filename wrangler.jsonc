@@ -1,16 +1,26 @@
 {
-	"compatibility_date": "2025-10-08",
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_date": "2026-05-14",
 	"main": "src/index.ts",
-	"name": "chanfana-openapi-template",
+	"name": "api-ubuntucode",
+	"workers_dev": false,
 	"upload_source_maps": true,
 	"observability": {
-		"enabled": true
+		"enabled": true,
+		"head_sampling_rate": 1
 	},
+	"routes": [
+		{
+			"pattern": "api.ubuntucode.com",
+			"custom_domain": true
+		}
+	],
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "openapi-template-db",
-			"database_id": "c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b"
+			"database_id": "c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b",
+			"migrations_dir": "./migrations"
 		}
 	]
 }

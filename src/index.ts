@@ -7,6 +7,16 @@ import { DummyEndpoint } from "./endpoints/dummyEndpoint";
 // Start a Hono app
 const app = new Hono<{ Bindings: Env }>();
 
+app.get("/health", (c) =>
+	c.json({
+		success: true,
+		result: {
+			service: "api-ubuntucode",
+			status: "ok",
+		},
+	}),
+);
+
 app.onError((err, c) => {
 	if (err instanceof ApiException) {
 		// If it's a Chanfana ApiException, let Chanfana handle the response
