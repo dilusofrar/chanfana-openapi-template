@@ -3,13 +3,27 @@ import { Hono } from "hono";
 import { ContentfulStatusCode } from "hono/utils/http-status";
 import {
 	ArticleCreate,
+	ArticleDelete,
 	ArticleList,
 	ArticleRead,
+	ArticleUpdate,
 } from "./endpoints/articles";
 import { AiAssist } from "./endpoints/ai";
-import { ProjectCreate, ProjectList, ProjectRead } from "./endpoints/projects";
-import { UserCreate, UserList, UserRead } from "./endpoints/users";
-import { WebhookReceive } from "./endpoints/webhooks";
+import {
+	ProjectCreate,
+	ProjectDelete,
+	ProjectList,
+	ProjectRead,
+	ProjectUpdate,
+} from "./endpoints/projects";
+import {
+	UserCreate,
+	UserDelete,
+	UserList,
+	UserRead,
+	UserUpdate,
+} from "./endpoints/users";
+import { WebhookList, WebhookRead, WebhookReceive } from "./endpoints/webhooks";
 import type { AppEnv } from "./bindings";
 
 // Start a Hono app
@@ -62,13 +76,21 @@ const openapi = fromHono(app, {
 openapi.get("/users", UserList);
 openapi.post("/users", UserCreate);
 openapi.get("/users/:id", UserRead);
+openapi.patch("/users/:id", UserUpdate);
+openapi.delete("/users/:id", UserDelete);
 openapi.get("/projects", ProjectList);
 openapi.post("/projects", ProjectCreate);
 openapi.get("/projects/:slug", ProjectRead);
+openapi.patch("/projects/:slug", ProjectUpdate);
+openapi.delete("/projects/:slug", ProjectDelete);
 openapi.get("/articles", ArticleList);
 openapi.post("/articles", ArticleCreate);
 openapi.get("/articles/:slug", ArticleRead);
+openapi.patch("/articles/:slug", ArticleUpdate);
+openapi.delete("/articles/:slug", ArticleDelete);
+openapi.get("/webhooks/events", WebhookList);
 openapi.post("/webhooks/events", WebhookReceive);
+openapi.get("/webhooks/events/:id", WebhookRead);
 openapi.post("/ai/assist", AiAssist);
 
 // Export the Hono app

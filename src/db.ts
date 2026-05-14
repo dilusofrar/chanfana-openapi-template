@@ -30,3 +30,21 @@ export function notFound(resource: string) {
 		errors: [{ code: "NOT_FOUND", message: `${resource} not found.` }],
 	};
 }
+
+export function buildUpdate(
+	tableName: string,
+	fields: Record<string, string | number | null | undefined>,
+	whereColumn: string,
+) {
+	const entries = Object.entries(fields).filter(
+		(entry): entry is [string, string | number | null] =>
+			entry[1] !== undefined,
+	);
+	const assignments = entries.map(([key]) => `${key} = ?`).join(", ");
+	const values = entries.map(([, value]) => value);
+
+	return {
+		sql: `UPDATE ${tableName} SET ${assignments}, updated_at = ? WHERE ${whereColumn} = ?`,
+		values,
+	};
+}

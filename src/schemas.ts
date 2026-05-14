@@ -44,6 +44,11 @@ export const userCreateSchema = z.object({
 	role: z.enum(["admin", "member"]).default("member"),
 });
 
+export const userUpdateSchema = userCreateSchema.partial().refine(
+	(data) => Object.keys(data).length > 0,
+	"Provide at least one field to update.",
+);
+
 export const projectSchema = z.object({
 	id: z.number().int(),
 	slug: z.string(),
@@ -65,6 +70,11 @@ export const projectCreateSchema = z.object({
 	live_url: z.string().url().nullable().optional(),
 });
 
+export const projectUpdateSchema = projectCreateSchema.partial().refine(
+	(data) => Object.keys(data).length > 0,
+	"Provide at least one field to update.",
+);
+
 export const articleSchema = z.object({
 	id: z.number().int(),
 	slug: z.string(),
@@ -85,6 +95,11 @@ export const articleCreateSchema = z.object({
 	status: z.enum(["draft", "published", "archived"]).default("draft"),
 	published_at: z.string().datetime().nullable().optional(),
 });
+
+export const articleUpdateSchema = articleCreateSchema.partial().refine(
+	(data) => Object.keys(data).length > 0,
+	"Provide at least one field to update.",
+);
 
 export const webhookEventSchema = z.object({
 	id: z.number().int(),

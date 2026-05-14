@@ -1,10 +1,11 @@
 import { contentJson, OpenAPIRoute } from "chanfana";
 import type { AppContext } from "../types";
 import { requireApiKey } from "../auth";
-import { getBySlug, notFound, nowIso } from "../db";
+import { buildUpdate, getBySlug, notFound, nowIso } from "../db";
 import {
 	articleCreateSchema,
 	articleSchema,
+	articleUpdateSchema,
 	errorResponse,
 	listQuery,
 	slugParam,
@@ -98,6 +99,89 @@ export class ArticleRead extends OpenAPIRoute {
 		const article = await getBySlug(c.env.DB, "articles", data.params.slug);
 
 		if (!article) return c.json(notFound("Article"), 404);
+
+		return c.json({ success: true, result: article });
+	}
+}
+
+export class ArticleUpdate extends OpenAPIRoute {
+	schema = {
+		tags: ["Articles"],
+		summary: "Update an article",
+		request: {
+			params: slugParam,
+			body: contentJson(articleUpdateSchema),
+		},
+		responses: {
+			"200": {
+				description: "Updated article",
+				...contentJson(successResponse(articleSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const existing = await getBySlug(c.env.DB, "articles", data.params.slug);
+		if (!existing) return c.json(notFound("Article"), 404);
+
+		const update = buildUpdate(
+			"articles",
+			{
+				slug: data.body.slug,
+				title: data.body.title,
+				excerpt: data.body.excerpt,
+				content: data.body.content,
+				status: data.body.status,
+				published_at: data.body.published_at,
+			},
+			"slug",
+		);
+		const now = nowIso();
+		await c.env.DB.prepare(update.sql)
+			.bind(...update.values, now, data.params.slug)
+			.run();
+		const article = await getBySlug(
+			c.env.DB,
+			"articles",
+			data.body.slug ?? data.params.slug,
+		);
+
+		return c.json({ success: true, result: article });
+	}
+}
+
+export class ArticleDelete extends OpenAPIRoute {
+	schema = {
+		tags: ["Articles"],
+		summary: "Delete an article",
+		request: { params: slugParam },
+		responses: {
+			"200": {
+				description: "Deleted article",
+				...contentJson(successResponse(articleSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const article = await getBySlug(c.env.DB, "articles", data.params.slug);
+		if (!article) return c.json(notFound("Article"), 404);
+
+		await c.env.DB.prepare("DELETE FROM articles WHERE slug = ?")
+			.bind(data.params.slug)
+			.run();
 
 		return c.json({ success: true, result: article });
 	}

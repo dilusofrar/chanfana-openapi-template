@@ -1,12 +1,13 @@
 import { contentJson, OpenAPIRoute } from "chanfana";
 import type { AppContext } from "../types";
 import { requireApiKey } from "../auth";
-import { getBySlug, notFound, nowIso } from "../db";
+import { buildUpdate, getBySlug, notFound, nowIso } from "../db";
 import {
 	errorResponse,
 	listQuery,
 	projectCreateSchema,
 	projectSchema,
+	projectUpdateSchema,
 	slugParam,
 	successResponse,
 } from "../schemas";
@@ -98,6 +99,89 @@ export class ProjectRead extends OpenAPIRoute {
 		const project = await getBySlug(c.env.DB, "projects", data.params.slug);
 
 		if (!project) return c.json(notFound("Project"), 404);
+
+		return c.json({ success: true, result: project });
+	}
+}
+
+export class ProjectUpdate extends OpenAPIRoute {
+	schema = {
+		tags: ["Projects"],
+		summary: "Update a project",
+		request: {
+			params: slugParam,
+			body: contentJson(projectUpdateSchema),
+		},
+		responses: {
+			"200": {
+				description: "Updated project",
+				...contentJson(successResponse(projectSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const existing = await getBySlug(c.env.DB, "projects", data.params.slug);
+		if (!existing) return c.json(notFound("Project"), 404);
+
+		const update = buildUpdate(
+			"projects",
+			{
+				slug: data.body.slug,
+				title: data.body.title,
+				summary: data.body.summary,
+				status: data.body.status,
+				repository_url: data.body.repository_url,
+				live_url: data.body.live_url,
+			},
+			"slug",
+		);
+		const now = nowIso();
+		await c.env.DB.prepare(update.sql)
+			.bind(...update.values, now, data.params.slug)
+			.run();
+		const project = await getBySlug(
+			c.env.DB,
+			"projects",
+			data.body.slug ?? data.params.slug,
+		);
+
+		return c.json({ success: true, result: project });
+	}
+}
+
+export class ProjectDelete extends OpenAPIRoute {
+	schema = {
+		tags: ["Projects"],
+		summary: "Delete a project",
+		request: { params: slugParam },
+		responses: {
+			"200": {
+				description: "Deleted project",
+				...contentJson(successResponse(projectSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const project = await getBySlug(c.env.DB, "projects", data.params.slug);
+		if (!project) return c.json(notFound("Project"), 404);
+
+		await c.env.DB.prepare("DELETE FROM projects WHERE slug = ?")
+			.bind(data.params.slug)
+			.run();
 
 		return c.json({ success: true, result: project });
 	}

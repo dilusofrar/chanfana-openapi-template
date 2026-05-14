@@ -19,8 +19,16 @@ Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, gener
 Protected routes require the `x-api-key` header.
 
 - `POST /users`
+- `PATCH /users/:id`
+- `DELETE /users/:id`
 - `POST /projects`
+- `PATCH /projects/:slug`
+- `DELETE /projects/:slug`
 - `POST /articles`
+- `PATCH /articles/:slug`
+- `DELETE /articles/:slug`
+- `GET /webhooks/events`
+- `GET /webhooks/events/:id`
 - `POST /webhooks/events`
 - `POST /ai/assist`
 

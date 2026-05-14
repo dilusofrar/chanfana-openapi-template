@@ -1,7 +1,7 @@
 import { contentJson, OpenAPIRoute } from "chanfana";
 import type { AppContext } from "../types";
 import { requireApiKey } from "../auth";
-import { getById, notFound, nowIso } from "../db";
+import { buildUpdate, getById, notFound, nowIso } from "../db";
 import {
 	errorResponse,
 	idParam,
@@ -9,6 +9,7 @@ import {
 	successResponse,
 	userCreateSchema,
 	userSchema,
+	userUpdateSchema,
 } from "../schemas";
 import { z } from "zod";
 
@@ -84,6 +85,82 @@ export class UserRead extends OpenAPIRoute {
 		const user = await getById(c.env.DB, "users", data.params.id);
 
 		if (!user) return c.json(notFound("User"), 404);
+
+		return c.json({ success: true, result: user });
+	}
+}
+
+export class UserUpdate extends OpenAPIRoute {
+	schema = {
+		tags: ["Users"],
+		summary: "Update a user",
+		request: {
+			params: idParam,
+			body: contentJson(userUpdateSchema),
+		},
+		responses: {
+			"200": {
+				description: "Updated user",
+				...contentJson(successResponse(userSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const existing = await getById(c.env.DB, "users", data.params.id);
+		if (!existing) return c.json(notFound("User"), 404);
+
+		const update = buildUpdate(
+			"users",
+			{
+				email: data.body.email,
+				name: data.body.name,
+				role: data.body.role,
+			},
+			"id",
+		);
+		const now = nowIso();
+		await c.env.DB.prepare(update.sql)
+			.bind(...update.values, now, data.params.id)
+			.run();
+		const user = await getById(c.env.DB, "users", data.params.id);
+
+		return c.json({ success: true, result: user });
+	}
+}
+
+export class UserDelete extends OpenAPIRoute {
+	schema = {
+		tags: ["Users"],
+		summary: "Delete a user",
+		request: { params: idParam },
+		responses: {
+			"200": {
+				description: "Deleted user",
+				...contentJson(successResponse(userSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const user = await getById(c.env.DB, "users", data.params.id);
+		if (!user) return c.json(notFound("User"), 404);
+
+		await c.env.DB.prepare("DELETE FROM users WHERE id = ?")
+			.bind(data.params.id)
+			.run();
 
 		return c.json({ success: true, result: user });
 	}

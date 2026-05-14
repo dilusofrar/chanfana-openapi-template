@@ -3,10 +3,70 @@ import type { AppContext } from "../types";
 import { requireApiKey } from "../auth";
 import {
 	errorResponse,
+	idParam,
+	listQuery,
 	successResponse,
 	webhookCreateSchema,
 	webhookEventSchema,
 } from "../schemas";
+import { getById, notFound } from "../db";
+import { z } from "zod";
+
+export class WebhookList extends OpenAPIRoute {
+	schema = {
+		tags: ["Webhooks"],
+		summary: "List webhook events",
+		request: { query: listQuery },
+		responses: {
+			"200": {
+				description: "Webhook events",
+				...contentJson(successResponse(z.array(webhookEventSchema))),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const result = await c.env.DB.prepare(
+			"SELECT * FROM webhook_events ORDER BY received_at DESC LIMIT ? OFFSET ?",
+		)
+			.bind(data.query.limit, data.query.offset)
+			.all();
+
+		return c.json({ success: true, result: result.results });
+	}
+}
+
+export class WebhookRead extends OpenAPIRoute {
+	schema = {
+		tags: ["Webhooks"],
+		summary: "Read a webhook event",
+		request: { params: idParam },
+		responses: {
+			"200": {
+				description: "Webhook event",
+				...contentJson(successResponse(webhookEventSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const event = await getById(c.env.DB, "webhook_events", data.params.id);
+		if (!event) return c.json(notFound("Webhook event"), 404);
+
+		return c.json({ success: true, result: event });
+	}
+}
 
 export class WebhookReceive extends OpenAPIRoute {
 	schema = {
