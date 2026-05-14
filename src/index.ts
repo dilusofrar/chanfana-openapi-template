@@ -25,6 +25,7 @@ import {
 } from "./endpoints/users";
 import { WebhookList, WebhookRead, WebhookReceive } from "./endpoints/webhooks";
 import type { AppEnv } from "./bindings";
+import { adminHtml } from "./admin";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: AppEnv }>();
@@ -38,6 +39,8 @@ app.get("/health", (c) =>
 		},
 	}),
 );
+
+app.get("/admin", (c) => c.html(adminHtml));
 
 app.onError((err, c) => {
 	if (err instanceof ApiException) {

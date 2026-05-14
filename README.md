@@ -5,6 +5,7 @@ Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, gener
 ## Public Endpoints
 
 - `GET /health` returns service health.
+- `GET /admin` serves the browser admin console.
 - `GET /` serves Swagger/OpenAPI documentation.
 - `GET /openapi.json` serves the generated OpenAPI schema.
 - `GET /projects` lists projects.

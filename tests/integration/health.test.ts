@@ -19,3 +19,15 @@ describe("Health endpoint", () => {
 		});
 	});
 });
+
+describe("Admin panel", () => {
+	it("serves the admin console", async () => {
+		const response = await SELF.fetch("http://local.test/admin");
+		const html = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get("content-type")).toContain("text/html");
+		expect(html).toContain("UbuntuCode Admin");
+		expect(html).toContain("Admin Console");
+	});
+});
