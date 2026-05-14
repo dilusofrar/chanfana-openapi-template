@@ -43,9 +43,9 @@ const openapi = fromHono(app, {
 	docs_url: "/",
 	schema: {
 		info: {
-			title: "My Awesome API",
-			version: "2.0.0",
-			description: "This is the documentation for my awesome API.",
+			title: "UbuntuCode API",
+			version: "1.0.0",
+			description: "OpenAPI documentation for api.ubuntucode.com.",
 		},
 	},
 });
