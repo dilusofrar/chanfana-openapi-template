@@ -177,3 +177,12 @@ export const assetUploadResponseSchema = z.object({
 	key: z.string(),
 	url: z.string().url(),
 });
+
+export const aiHistorySchema = z.object({
+	id: z.number().int(),
+	kind: z.string(),
+	prompt: z.string(),
+	response: z.string(),
+	provider: z.string(),
+	created_at: z.string(),
+});

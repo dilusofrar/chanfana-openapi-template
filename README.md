@@ -107,6 +107,16 @@ Optional asset uploads use an `ASSETS` R2 binding. Without that binding, the upl
 
 Public lead/newsletter/webhook/AI traffic is rate limited through D1. CORS is restricted to UbuntuCode and local development origins.
 
+### R2 assets
+
+Create the R2 bucket once in the Cloudflare account:
+
+```bash
+npx wrangler r2 bucket create ubuntucode-assets
+```
+
+The Worker config binds it as `env.ASSETS`. After that, the admin image upload button stores images in R2 and writes the public `/assets/uploads/...` URL into the cover image field.
+
 ## Deployment
 
 The Cloudflare Git integration runs:

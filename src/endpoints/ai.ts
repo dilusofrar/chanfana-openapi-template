@@ -3,9 +3,11 @@ import type { AppContext } from "../types";
 import { requireApiKey } from "../auth";
 import { enforceRateLimit } from "../rateLimit";
 import {
+	aiHistorySchema,
 	aiRequestSchema,
 	articleAiActionSchema,
 	errorResponse,
+	listQuery,
 	successResponse,
 } from "../schemas";
 import { z } from "zod";
@@ -170,5 +172,34 @@ export class ArticleAiAssist extends OpenAPIRoute {
 				provider: result.provider,
 			},
 		});
+	}
+}
+
+export class AiHistoryList extends OpenAPIRoute {
+	schema = {
+		tags: ["AI"],
+		summary: "List AI usage history",
+		request: { query: listQuery },
+		responses: {
+			"200": {
+				description: "AI history",
+				...contentJson(successResponse(z.array(aiHistorySchema))),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = await requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const result = await c.env.DB.prepare(
+			"SELECT * FROM ai_history ORDER BY created_at DESC LIMIT ? OFFSET ?",
+		)
+			.bind(data.query.limit, data.query.offset)
+			.all();
+
+		return c.json({ success: true, result: result.results });
 	}
 }

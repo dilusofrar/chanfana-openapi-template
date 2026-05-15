@@ -266,6 +266,16 @@ describe("UbuntuCode API", () => {
 		expect(response.status).toBe(200);
 		expect(body.result.answer.length).toBeGreaterThan(0);
 		expect(["fallback", "workers-ai"]).toContain(body.result.provider);
+
+		const historyResponse = await SELF.fetch("http://local.test/ai/history", {
+			headers: { "x-api-key": "test-api-key" },
+		});
+		const history = await historyResponse.json<{
+			result: Array<{ kind: string; response: string }>;
+		}>();
+
+		expect(historyResponse.status).toBe(200);
+		expect(history.result.some((item) => item.kind === "assist")).toBe(true);
 	});
 
 	it("generates article AI suggestions", async () => {
@@ -315,5 +325,21 @@ describe("UbuntuCode API", () => {
 		});
 
 		expect(newsletterResponse.status).toBe(201);
+	});
+
+	it("returns a clear asset upload error when R2 is not bound in tests", async () => {
+		const data = new FormData();
+		data.set("file", new File(["fake"], "cover.png", { type: "image/png" }));
+		const response = await SELF.fetch("http://local.test/assets/upload", {
+			method: "POST",
+			headers: { "x-api-key": "test-api-key" },
+			body: data,
+		});
+		const body = await response.json<{
+			errors: Array<{ code: string }>;
+		}>();
+
+		expect(response.status).toBe(503);
+		expect(body.errors[0].code).toBe("ASSETS_NOT_CONFIGURED");
 	});
 });

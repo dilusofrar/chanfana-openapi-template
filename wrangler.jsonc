@@ -15,6 +15,12 @@
 	"ai": {
 		"binding": "AI"
 	},
+	"r2_buckets": [
+		{
+			"binding": "ASSETS",
+			"bucket_name": "ubuntucode-assets"
+		}
+	],
 	"routes": [
 		{
 			"pattern": "api.ubuntucode.com",

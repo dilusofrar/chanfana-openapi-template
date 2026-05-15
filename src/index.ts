@@ -8,7 +8,7 @@ import {
 	ArticleRead,
 	ArticleUpdate,
 } from "./endpoints/articles";
-import { AiAssist, ArticleAiAssist } from "./endpoints/ai";
+import { AiAssist, AiHistoryList, ArticleAiAssist } from "./endpoints/ai";
 import { AssetUpload } from "./endpoints/assets";
 import { LeadCreate, LeadList, NewsletterSubscribe } from "./endpoints/leads";
 import {
@@ -239,6 +239,7 @@ openapi.post("/webhooks/events", WebhookReceive);
 openapi.get("/webhooks/events/:id", WebhookRead);
 openapi.post("/ai/assist", AiAssist);
 openapi.post("/ai/articles", ArticleAiAssist);
+openapi.get("/ai/history", AiHistoryList);
 openapi.get("/leads", LeadList);
 openapi.post("/leads", LeadCreate);
 openapi.post("/newsletter", NewsletterSubscribe);

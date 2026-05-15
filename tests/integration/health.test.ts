@@ -52,6 +52,8 @@ describe("Admin panel", () => {
 		expect(response.headers.get("content-type")).toContain("text/html");
 		expect(html).toContain("UbuntuCode Admin");
 		expect(html).toContain("Admin Console");
+		expect(html).toContain("Histórico de IA");
+		expect(html).toContain("Upload");
 		expect(response.headers.get("set-cookie")).toContain("uc_admin_session");
 	});
 

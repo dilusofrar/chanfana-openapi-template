@@ -513,6 +513,26 @@ export const adminHtml = String.raw`<!doctype html>
 		.ai-suggestion.show {
 			display: block;
 		}
+		.upload-row {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 8px;
+		}
+		.upload-row input[type="file"] {
+			padding: 8px;
+		}
+		.detail {
+			margin-top: 12px;
+			padding: 14px;
+			border: 1px solid var(--line);
+			border-radius: var(--radius);
+			background: #fbfcfd;
+			display: grid;
+			gap: 8px;
+			white-space: pre-wrap;
+			color: var(--muted);
+			font-size: 13px;
+		}
 		.toast {
 			position: fixed;
 			right: 18px;
@@ -611,6 +631,7 @@ export const adminHtml = String.raw`<!doctype html>
 			users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
 			leads: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>',
 			webhooks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16.98A6 6 0 0 0 12 7h-1"/><path d="M8 7H5"/><path d="m8 4-3 3 3 3"/><path d="M6 17a6 6 0 0 0 6-10"/><path d="M16 17h3"/><path d="m16 20 3-3-3-3"/></svg>',
+			history: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 5 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>',
 			ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>'
 		};
 		const resources = {
@@ -656,7 +677,16 @@ export const adminHtml = String.raw`<!doctype html>
 				id: "id",
 				readOnly: true,
 				authList: true,
-				columns: ["id", "name", "email", "source"]
+				columns: ["id", "name", "email", "source", "message"]
+			},
+			history: {
+				title: "Histórico de IA",
+				subtitle: "Audite prompts, respostas e provedores usados.",
+				path: "/ai/history",
+				id: "id",
+				readOnly: true,
+				authList: true,
+				columns: ["id", "kind", "provider", "created_at"]
 			},
 			webhooks: {
 				title: "Webhooks",
@@ -734,27 +764,33 @@ export const adminHtml = String.raw`<!doctype html>
 				el("table").innerHTML = '<div class="empty">Nenhum registro por enquanto.</div>';
 				return;
 			}
-			const head = resource.columns.map((column) => '<th>' + column + '</th>').join("") + (resource.readOnly ? "" : "<th></th>");
+			const head = resource.columns.map((column) => '<th>' + column + '</th>').join("") + "<th></th>";
 			const rows = state.rows.map((row) => {
 				const cells = resource.columns.map((column) => {
 					const value = row[column];
+					const displayValue = column === "message" || column === "prompt" || column === "response"
+						? String(value ?? "").slice(0, 120)
+						: value;
 					const content = column === "status" || column === "role"
-						? '<span class="pill">' + escapeHtml(value) + '</span>'
-						: escapeHtml(value);
+						? '<span class="pill">' + escapeHtml(displayValue) + '</span>'
+						: escapeHtml(displayValue);
 					return '<td>' + content + '</td>';
 				}).join("");
 				const key = row[resource.id];
-				const actions = resource.readOnly ? "" : '<td><div class="actions"><button class="secondary icon" title="Editar" data-edit="' + key + '">✎</button><button class="danger icon" title="Excluir" data-delete="' + key + '">×</button></div></td>';
+				const actions = resource.readOnly
+					? '<td><div class="actions"><button class="secondary icon" title="Detalhes" data-detail="' + key + '">…</button></div></td>'
+					: '<td><div class="actions"><button class="secondary icon" title="Editar" data-edit="' + key + '">✎</button><button class="danger icon" title="Excluir" data-delete="' + key + '">×</button></div></td>';
 				return '<tr>' + cells + actions + '</tr>';
 			}).join("");
 			el("table").innerHTML = '<table><thead><tr>' + head + '</tr></thead><tbody>' + rows + '</tbody></table>';
 			document.querySelectorAll("[data-edit]").forEach((button) => button.addEventListener("click", () => editRow(button.dataset.edit)));
 			document.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", () => deleteRow(button.dataset.delete)));
+			document.querySelectorAll("[data-detail]").forEach((button) => button.addEventListener("click", () => showDetail(button.dataset.detail)));
 		}
 		function renderForm(resource) {
 			if (resource.readOnly) {
-				el("formTitle").textContent = "Auditoria";
-				el("editor").innerHTML = '<div class="empty">Eventos de webhook sao somente leitura neste painel.</div>';
+				el("formTitle").textContent = "Detalhes";
+				el("editor").innerHTML = '<div class="empty">Selecione um registro para ver os detalhes.</div>';
 				return;
 			}
 			if (resource.ai) {
@@ -776,6 +812,7 @@ export const adminHtml = String.raw`<!doctype html>
 				const value = current[name] ?? "";
 				if (type === "textarea") return '<div class="field full"><label for="' + name + '">' + label + '</label><textarea id="' + name + '" name="' + name + '">' + escapeHtml(value) + '</textarea></div>';
 				if (type === "select") return '<div class="field"><label for="' + name + '">' + label + '</label><select id="' + name + '" name="' + name + '">' + options.map((option) => '<option value="' + option + '"' + (value === option ? " selected" : "") + '>' + option + '</option>').join("") + '</select></div>';
+				if (name === "image_url") return '<div class="field full"><label for="' + name + '">' + label + '</label><input id="' + name + '" name="' + name + '" value="' + escapeHtml(value) + '" /><div class="upload-row"><input id="assetFile" type="file" accept="image/*" /><button type="button" class="secondary" id="uploadAsset">Upload</button></div></div>';
 				return '<div class="field"><label for="' + name + '">' + label + '</label><input id="' + name + '" name="' + name + '" value="' + escapeHtml(value) + '" /></div>';
 			}).join("");
 			const articleTools = state.current === "articles"
@@ -789,6 +826,36 @@ export const adminHtml = String.raw`<!doctype html>
 			document.querySelectorAll("[data-ai-article]").forEach((button) => {
 				button.addEventListener("click", () => runArticleAi(button.dataset.aiArticle));
 			});
+			const uploadButton = el("uploadAsset");
+			if (uploadButton) uploadButton.addEventListener("click", uploadAsset);
+		}
+		function showDetail(key) {
+			const resource = resources[state.current];
+			const row = state.rows.find((item) => String(item[resource.id]) === String(key));
+			if (!row) return;
+			el("formTitle").textContent = "Detalhes";
+			const parts = Object.entries(row).map(([name, value]) => '<strong>' + escapeHtml(name) + '</strong><div>' + escapeHtml(value) + '</div>');
+			el("editor").innerHTML = '<div class="detail">' + parts.join("") + '</div>';
+		}
+		async function uploadAsset() {
+			const input = el("assetFile");
+			const file = input?.files?.[0];
+			if (!file) {
+				toast("Escolha uma imagem primeiro");
+				return;
+			}
+			try {
+				const data = new FormData();
+				data.set("file", file);
+				const result = await request("/assets/upload", {
+					method: "POST",
+					body: data,
+				});
+				el("image_url").value = result.url;
+				toast("Imagem enviada");
+			} catch (error) {
+				toast(error.message);
+			}
 		}
 		function editRow(key) {
 			const resource = resources[state.current];
