@@ -60,8 +60,8 @@ export class ArticleCreate extends OpenAPIRoute {
 		const now = nowIso();
 		await c.env.DB.prepare(
 			`INSERT INTO articles
-				(slug, title, excerpt, content, status, published_at, created_at, updated_at)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				(slug, title, excerpt, content, status, published_at, image_url, tags, category, seo_title, seo_description, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		)
 			.bind(
 				data.body.slug,
@@ -70,6 +70,11 @@ export class ArticleCreate extends OpenAPIRoute {
 				data.body.content,
 				data.body.status,
 				data.body.published_at ?? null,
+				data.body.image_url ?? null,
+				data.body.tags ?? null,
+				data.body.category ?? null,
+				data.body.seo_title ?? null,
+				data.body.seo_description ?? null,
 				now,
 				now,
 			)
@@ -139,6 +144,11 @@ export class ArticleUpdate extends OpenAPIRoute {
 				content: data.body.content,
 				status: data.body.status,
 				published_at: data.body.published_at,
+				image_url: data.body.image_url,
+				tags: data.body.tags,
+				category: data.body.category,
+				seo_title: data.body.seo_title,
+				seo_description: data.body.seo_description,
 			},
 			"slug",
 		);

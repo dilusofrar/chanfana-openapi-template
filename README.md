@@ -7,6 +7,12 @@ Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, gener
 - `GET /health` returns service health.
 - `GET /admin` serves the browser admin console.
 - `GET /` serves the public UbuntuCode website.
+- `GET /projetos` lists public active projects.
+- `GET /projetos/:slug` shows one public project.
+- `GET /blog` lists public published articles.
+- `GET /blog/:slug` shows one public article.
+- `GET /contato` serves the public contact form.
+- `GET /sitemap.xml`, `GET /robots.txt`, and `GET /rss.xml` serve SEO/discovery files.
 - `GET /site` keeps the legacy public website alias.
 - `GET /site/projects` lists public active projects.
 - `GET /site/projects/:slug` shows one public project.
@@ -18,6 +24,8 @@ Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, gener
 - `GET /projects/:slug` reads one project.
 - `GET /articles` lists articles.
 - `GET /articles/:slug` reads one article.
+- `POST /leads` stores a public contact lead.
+- `POST /newsletter` subscribes an email to the newsletter.
 - `GET /users` lists users.
 - `GET /users/:id` reads one user.
 
@@ -39,6 +47,8 @@ Protected routes require the `x-api-key` header.
 - `POST /webhooks/events`
 - `POST /ai/assist`
 - `POST /ai/articles`
+- `GET /leads`
+- `POST /assets/upload`
 
 ## Admin Console
 
@@ -48,11 +58,19 @@ Open:
 https://api.ubuntucode.com/admin
 ```
 
-The panel shows its own login screen. Use:
+The panel shows its own login screen. Prefer a dedicated admin password:
+
+```bash
+npx wrangler secret put ADMIN_PASSWORD
+```
+
+If `ADMIN_PASSWORD` is not configured, the panel falls back to:
 
 - password: your production `API_KEY` secret
 
 After login, the Worker sets a short-lived `HttpOnly` admin session cookie. The panel can call protected API routes without typing the key again.
+
+The admin can manage projects, articles, users, leads, webhooks, and AI workflows. Articles and projects support cover image URLs, tags, SEO title, and SEO description. Article AI tools can suggest titles, excerpts, improved text, tags, full drafts, SEO metadata, LinkedIn posts, and tone rewrites.
 
 ## Local Setup
 
@@ -84,6 +102,10 @@ The Worker uses:
 - Custom domain: `api.ubuntucode.com`
 - D1 database: `openapi-template-db`
 - D1 id: `c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b`
+
+Optional asset uploads use an `ASSETS` R2 binding. Without that binding, the upload endpoint returns a clear `503` and the admin can still use external image URLs.
+
+Public lead/newsletter/webhook/AI traffic is rate limited through D1. CORS is restricted to UbuntuCode and local development origins.
 
 ## Deployment
 

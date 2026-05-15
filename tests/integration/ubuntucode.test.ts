@@ -33,16 +33,21 @@ describe("UbuntuCode API", () => {
 				status: "active",
 				repository_url: "https://github.com/dilusofrar/chanfana-openapi-template",
 				live_url: "https://api.ubuntucode.com",
+				image_url: "https://api.ubuntucode.com/assets/example.jpg",
+				tags: "workers,api",
+				seo_title: "UbuntuCode API",
+				seo_description: "Backend serverless da UbuntuCode",
 			}),
 		});
 		const created = await createResponse.json<{
 			success: boolean;
-			result: { slug: string; status: string };
+			result: { slug: string; status: string; tags: string };
 		}>();
 
 		expect(createResponse.status).toBe(201);
 		expect(created.result.slug).toBe(slug);
 		expect(created.result.status).toBe("active");
+		expect(created.result.tags).toBe("workers,api");
 
 		const readResponse = await SELF.fetch(`http://local.test/projects/${slug}`);
 		const read = await readResponse.json<{
@@ -113,6 +118,10 @@ describe("UbuntuCode API", () => {
 				content: "Conteudo do artigo.",
 				status: "published",
 				published_at: "2026-05-14T00:00:00.000Z",
+				category: "Cloudflare",
+				tags: "workers,d1",
+				seo_title: "Primeiro artigo SEO",
+				seo_description: "Uma introducao otimizada ao UbuntuCode.",
 			}),
 		});
 
@@ -278,5 +287,33 @@ describe("UbuntuCode API", () => {
 		expect(body.result.action).toBe("excerpt");
 		expect(body.result.suggestion.length).toBeGreaterThan(0);
 		expect(["fallback", "workers-ai"]).toContain(body.result.provider);
+	});
+
+	it("accepts contact leads and newsletter subscribers", async () => {
+		const email = `lead-${crypto.randomUUID()}@ubuntucode.com`;
+		const leadResponse = await SELF.fetch("http://local.test/leads", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				name: "Lead UbuntuCode",
+				email,
+				message: "Quero falar sobre APIs.",
+			}),
+		});
+		const lead = await leadResponse.json<{
+			result: { email: string; source: string };
+		}>();
+
+		expect(leadResponse.status).toBe(201);
+		expect(lead.result.email).toBe(email);
+		expect(lead.result.source).toBe("contact");
+
+		const newsletterResponse = await SELF.fetch("http://local.test/newsletter", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email }),
+		});
+
+		expect(newsletterResponse.status).toBe(201);
 	});
 });

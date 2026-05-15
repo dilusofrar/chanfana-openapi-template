@@ -60,8 +60,8 @@ export class ProjectCreate extends OpenAPIRoute {
 		const now = nowIso();
 		await c.env.DB.prepare(
 			`INSERT INTO projects
-				(slug, title, summary, status, repository_url, live_url, created_at, updated_at)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				(slug, title, summary, status, repository_url, live_url, image_url, tags, seo_title, seo_description, created_at, updated_at)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		)
 			.bind(
 				data.body.slug,
@@ -70,6 +70,10 @@ export class ProjectCreate extends OpenAPIRoute {
 				data.body.status,
 				data.body.repository_url ?? null,
 				data.body.live_url ?? null,
+				data.body.image_url ?? null,
+				data.body.tags ?? null,
+				data.body.seo_title ?? null,
+				data.body.seo_description ?? null,
 				now,
 				now,
 			)
@@ -139,6 +143,10 @@ export class ProjectUpdate extends OpenAPIRoute {
 				status: data.body.status,
 				repository_url: data.body.repository_url,
 				live_url: data.body.live_url,
+				image_url: data.body.image_url,
+				tags: data.body.tags,
+				seo_title: data.body.seo_title,
+				seo_description: data.body.seo_description,
 			},
 			"slug",
 		);

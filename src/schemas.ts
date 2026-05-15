@@ -57,6 +57,10 @@ export const projectSchema = z.object({
 	status: z.enum(["draft", "active", "archived"]),
 	repository_url: z.string().url().nullable(),
 	live_url: z.string().url().nullable(),
+	image_url: z.string().url().nullable(),
+	tags: z.string().nullable(),
+	seo_title: z.string().nullable(),
+	seo_description: z.string().nullable(),
 	created_at: z.string(),
 	updated_at: z.string(),
 });
@@ -68,6 +72,10 @@ export const projectCreateSchema = z.object({
 	status: z.enum(["draft", "active", "archived"]).default("draft"),
 	repository_url: z.string().url().nullable().optional(),
 	live_url: z.string().url().nullable().optional(),
+	image_url: z.string().url().nullable().optional(),
+	tags: z.string().nullable().optional(),
+	seo_title: z.string().nullable().optional(),
+	seo_description: z.string().nullable().optional(),
 });
 
 export const projectUpdateSchema = projectCreateSchema.partial().refine(
@@ -83,6 +91,11 @@ export const articleSchema = z.object({
 	content: z.string(),
 	status: z.enum(["draft", "published", "archived"]),
 	published_at: z.string().nullable(),
+	image_url: z.string().url().nullable(),
+	tags: z.string().nullable(),
+	category: z.string().nullable(),
+	seo_title: z.string().nullable(),
+	seo_description: z.string().nullable(),
 	created_at: z.string(),
 	updated_at: z.string(),
 });
@@ -94,6 +107,11 @@ export const articleCreateSchema = z.object({
 	content: z.string().min(1),
 	status: z.enum(["draft", "published", "archived"]).default("draft"),
 	published_at: z.string().datetime().nullable().optional(),
+	image_url: z.string().url().nullable().optional(),
+	tags: z.string().nullable().optional(),
+	category: z.string().nullable().optional(),
+	seo_title: z.string().nullable().optional(),
+	seo_description: z.string().nullable().optional(),
 });
 
 export const articleUpdateSchema = articleCreateSchema.partial().refine(
@@ -120,8 +138,42 @@ export const aiRequestSchema = z.object({
 });
 
 export const articleAiActionSchema = z.object({
-	action: z.enum(["title", "excerpt", "improve", "tags"]),
+	action: z.enum(["title", "excerpt", "improve", "tags", "full", "seo", "linkedin", "tone"]),
 	title: z.string().optional().default(""),
 	excerpt: z.string().optional().default(""),
 	content: z.string().optional().default(""),
+	briefing: z.string().optional().default(""),
+	tone: z.string().optional().default("tecnico e claro"),
+});
+
+export const leadCreateSchema = z.object({
+	name: z.string().min(1).max(120),
+	email: z.string().email(),
+	message: z.string().min(1).max(2000),
+	source: z.string().min(1).max(80).default("contact"),
+});
+
+export const leadSchema = z.object({
+	id: z.number().int(),
+	name: z.string(),
+	email: z.string(),
+	message: z.string(),
+	source: z.string(),
+	created_at: z.string(),
+});
+
+export const newsletterCreateSchema = z.object({
+	email: z.string().email(),
+});
+
+export const newsletterSubscriberSchema = z.object({
+	id: z.number().int(),
+	email: z.string(),
+	status: z.enum(["active", "unsubscribed"]),
+	created_at: z.string(),
+});
+
+export const assetUploadResponseSchema = z.object({
+	key: z.string(),
+	url: z.string().url(),
 });

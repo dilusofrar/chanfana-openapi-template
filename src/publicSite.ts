@@ -9,6 +9,10 @@ type ProjectRow = {
 	status: string;
 	repository_url: string | null;
 	live_url: string | null;
+	image_url: string | null;
+	tags: string | null;
+	seo_title: string | null;
+	seo_description: string | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -21,6 +25,11 @@ type ArticleRow = {
 	content: string;
 	status: string;
 	published_at: string | null;
+	image_url: string | null;
+	tags: string | null;
+	category: string | null;
+	seo_title: string | null;
+	seo_description: string | null;
 	created_at: string;
 	updated_at: string;
 };
@@ -29,6 +38,7 @@ type SeoOptions = {
 	description?: string;
 	path?: string;
 	type?: "website" | "article";
+	image?: string | null;
 };
 
 const SITE_ORIGIN = "https://api.ubuntucode.com";
@@ -50,6 +60,8 @@ function escapeHtml(value: unknown) {
 }
 
 function absoluteUrl(path = "/") {
+	if (/^https?:\/\//.test(path)) return path;
+
 	return `${SITE_ORIGIN}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
@@ -58,6 +70,27 @@ function compactText(value: string, fallback = DEFAULT_DESCRIPTION) {
 	const text = normalized || fallback;
 
 	return text.length > 156 ? `${text.slice(0, 153).trim()}...` : text;
+}
+
+function tags(value: string | null) {
+	return String(value ?? "")
+		.split(",")
+		.map((tag) => tag.trim())
+		.filter(Boolean);
+}
+
+function xmlEscape(value: unknown) {
+	return String(value ?? "").replace(/[<>&'"]/g, (char) => {
+		const entities: Record<string, string> = {
+			"<": "&lt;",
+			">": "&gt;",
+			"&": "&amp;",
+			"'": "&apos;",
+			'"': "&quot;",
+		};
+
+		return entities[char] ?? char;
+	});
 }
 
 function dateLabel(value: string | null) {
@@ -83,6 +116,7 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 	const description = compactText(options.description ?? DEFAULT_DESCRIPTION);
 	const canonical = absoluteUrl(options.path ?? "/");
 	const type = options.type ?? "website";
+	const image = options.image ? absoluteUrl(options.image) : null;
 
 	return `<!doctype html>
 <html lang="pt-BR">
@@ -96,6 +130,7 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 	<meta property="og:description" content="${escapeHtml(description)}" />
 	<meta property="og:type" content="${escapeHtml(type)}" />
 	<meta property="og:url" content="${escapeHtml(canonical)}" />
+	${image ? `<meta property="og:image" content="${escapeHtml(image)}" />` : ""}
 	<meta name="twitter:card" content="summary" />
 	<style>
 		:root {
@@ -246,6 +281,13 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 			font-size: 20px;
 			line-height: 1.2;
 		}
+		.card-media {
+			width: 100%;
+			aspect-ratio: 16 / 9;
+			object-fit: cover;
+			border-radius: 7px;
+			border: 1px solid var(--line);
+		}
 		.card p {
 			margin: 0;
 			color: var(--muted);
@@ -273,6 +315,14 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 			border-radius: 8px;
 			padding: 28px;
 			box-shadow: 0 10px 30px rgba(20, 37, 49, 0.08);
+		}
+		.cover {
+			width: 100%;
+			aspect-ratio: 16 / 8;
+			object-fit: cover;
+			border-radius: 7px;
+			border: 1px solid var(--line);
+			margin-bottom: 18px;
 		}
 		.article-shell {
 			display: grid;
@@ -309,6 +359,11 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 			color: var(--muted);
 			font-size: 14px;
 			margin: 0 0 12px;
+		}
+		.contact-form {
+			display: grid;
+			gap: 12px;
+			margin-top: 18px;
 		}
 		.actions {
 			display: flex;
@@ -363,8 +418,9 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 		<nav class="nav">
 			<a class="brand" href="/"><span class="logo">UC</span><span>UbuntuCode</span></a>
 			<div class="links">
-				<a href="/site/projects">Projetos</a>
-				<a href="/site/articles">Artigos</a>
+				<a href="/projetos">Projetos</a>
+				<a href="/blog">Artigos</a>
+				<a href="/contato">Contato</a>
 				<a href="/admin">Admin</a>
 				<a href="/docs">API</a>
 			</div>
@@ -381,18 +437,23 @@ function hero(title: string, subtitle: string, actions = "") {
 }
 
 function projectCard(project: ProjectRow) {
-	return `<a class="card" href="/site/projects/${encodeURIComponent(project.slug)}">
+	return `<a class="card" href="/projetos/${encodeURIComponent(project.slug)}">
+		${project.image_url ? `<img class="card-media" src="${escapeHtml(project.image_url)}" alt="" loading="lazy" />` : ""}
 		<h3>${escapeHtml(project.title)}</h3>
 		<p>${escapeHtml(project.summary)}</p>
-		<div class="meta"><span class="badge">${escapeHtml(project.status)}</span></div>
+		<div class="meta"><span class="badge">${escapeHtml(project.status)}</span>${tags(project.tags)
+			.slice(0, 2)
+			.map((tag) => `<span>${escapeHtml(tag)}</span>`)
+			.join("")}</div>
 	</a>`;
 }
 
 function articleCard(article: ArticleRow) {
-	return `<a class="card" href="/site/articles/${encodeURIComponent(article.slug)}">
+	return `<a class="card" href="/blog/${encodeURIComponent(article.slug)}">
+		${article.image_url ? `<img class="card-media" src="${escapeHtml(article.image_url)}" alt="" loading="lazy" />` : ""}
 		<h3>${escapeHtml(article.title)}</h3>
 		<p>${escapeHtml(article.excerpt)}</p>
-		<div class="meta"><span>${escapeHtml(dateLabel(article.published_at || article.created_at))}</span></div>
+		<div class="meta"><span>${escapeHtml(dateLabel(article.published_at || article.created_at))}</span>${article.category ? `<span class="badge">${escapeHtml(article.category)}</span>` : ""}</div>
 	</a>`;
 }
 
@@ -423,8 +484,9 @@ export async function renderHome(c: Context<{ Bindings: AppEnv }>) {
 		"UbuntuCode",
 		"Projetos, artigos e experimentos sobre APIs, automacao, Cloudflare Workers e IA aplicada.",
 		`<div class="hero-actions">
-			<a class="button light" href="/site/projects">Explorar projetos</a>
-			<a class="button secondary" href="/site/articles">Ler artigos</a>
+			<a class="button light" href="/projetos">Explorar projetos</a>
+			<a class="button secondary" href="/blog">Ler artigos</a>
+			<a class="button secondary" href="/contato">Contato</a>
 		</div>`,
 	)}
 	<main class="main">
@@ -433,10 +495,10 @@ export async function renderHome(c: Context<{ Bindings: AppEnv }>) {
 			<div class="feature"><strong>IA aplicada</strong><span>Fluxos editoriais e automacoes usando Workers AI.</span></div>
 			<div class="feature"><strong>Produtos digitais</strong><span>Projetos publicados com codigo, demo e aprendizado real.</span></div>
 		</section>
-		<div class="section-head"><h2>Projetos</h2><a href="/site/projects">Ver todos</a></div>
+		<div class="section-head"><h2>Projetos</h2><a href="/projetos">Ver todos</a></div>
 		${projects.length ? `<div class="grid">${projects.map(projectCard).join("")}</div>` : '<div class="empty">Nenhum projeto publicado ainda.</div>'}
 		<br>
-		<div class="section-head"><h2>Artigos</h2><a href="/site/articles">Ver todos</a></div>
+		<div class="section-head"><h2>Artigos</h2><a href="/blog">Ver todos</a></div>
 		${articles.length ? `<div class="grid">${articles.map(articleCard).join("")}</div>` : '<div class="empty">Nenhum artigo publicado ainda.</div>'}
 	</main>`;
 
@@ -458,7 +520,7 @@ export async function renderProjects(c: Context<{ Bindings: AppEnv }>) {
 	return c.html(
 		layout("Projetos", body, {
 			description: "Projetos ativos da UbuntuCode com APIs, automacoes, demos e repositorios.",
-			path: "/site/projects",
+			path: "/projetos",
 		}),
 	);
 }
@@ -476,6 +538,7 @@ export async function renderProject(c: Context<{ Bindings: AppEnv }>) {
 	const body = `<main class="main">
 		<div class="article-shell">
 			<article class="article">
+				${project.image_url ? `<img class="cover" src="${escapeHtml(project.image_url)}" alt="" />` : ""}
 				<div class="meta"><span class="badge">${escapeHtml(project.status)}</span><span>Atualizado em ${escapeHtml(dateLabel(project.updated_at))}</span></div>
 				<h1>${escapeHtml(project.title)}</h1>
 				<p class="lead">${escapeHtml(project.summary)}</p>
@@ -488,15 +551,17 @@ export async function renderProject(c: Context<{ Bindings: AppEnv }>) {
 				<h2>Projeto</h2>
 				<p>Status: ${escapeHtml(project.status)}</p>
 				<p>Criado em ${escapeHtml(dateLabel(project.created_at))}</p>
-				<a class="button secondary" href="/site/projects">Todos os projetos</a>
+				${tags(project.tags).map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join(" ")}
+				<a class="button secondary" href="/projetos">Todos os projetos</a>
 			</aside>
 		</div>
 	</main>`;
 
 	return c.html(
-		layout(project.title, body, {
-			description: project.summary,
-			path: `/site/projects/${project.slug}`,
+		layout(project.seo_title || project.title, body, {
+			description: project.seo_description || project.summary,
+			path: `/projetos/${project.slug}`,
+			image: project.image_url,
 		}),
 	);
 }
@@ -511,7 +576,7 @@ export async function renderArticles(c: Context<{ Bindings: AppEnv }>) {
 	return c.html(
 		layout("Artigos", body, {
 			description: "Artigos da UbuntuCode sobre APIs, Cloudflare Workers, IA aplicada e construcao de produtos digitais.",
-			path: "/site/articles",
+			path: "/blog",
 		}),
 	);
 }
@@ -529,6 +594,7 @@ export async function renderArticle(c: Context<{ Bindings: AppEnv }>) {
 	const body = `<main class="main">
 		<div class="article-shell">
 			<article class="article">
+				${article.image_url ? `<img class="cover" src="${escapeHtml(article.image_url)}" alt="" />` : ""}
 				<div class="meta"><span>${escapeHtml(dateLabel(article.published_at || article.created_at))}</span></div>
 				<h1>${escapeHtml(article.title)}</h1>
 				<p class="lead">${escapeHtml(article.excerpt)}</p>
@@ -537,17 +603,113 @@ export async function renderArticle(c: Context<{ Bindings: AppEnv }>) {
 			<aside class="sidebar">
 				<h2>Artigo</h2>
 				<p>Publicado em ${escapeHtml(dateLabel(article.published_at || article.created_at))}</p>
+				${article.category ? `<p>Categoria: ${escapeHtml(article.category)}</p>` : ""}
+				${tags(article.tags).map((tag) => `<span class="badge">${escapeHtml(tag)}</span>`).join(" ")}
 				<p>Leitura tecnica da UbuntuCode.</p>
-				<a class="button secondary" href="/site/articles">Todos os artigos</a>
+				<a class="button secondary" href="/blog">Todos os artigos</a>
 			</aside>
 		</div>
 	</main>`;
 
 	return c.html(
-		layout(article.title, body, {
-			description: article.excerpt,
-			path: `/site/articles/${article.slug}`,
+		layout(article.seo_title || article.title, body, {
+			description: article.seo_description || article.excerpt,
+			path: `/blog/${article.slug}`,
 			type: "article",
+			image: article.image_url,
 		}),
 	);
+}
+
+export async function renderContact(c: Context<{ Bindings: AppEnv }>) {
+	const body = `${hero("Contato", "Fale com a UbuntuCode sobre APIs, automacoes, IA aplicada ou produtos digitais.")}
+	<main class="main">
+		<article class="article">
+			<h1>Vamos construir algo util</h1>
+			<p class="lead">Envie uma mensagem e ela sera registrada como lead na API.</p>
+			<form class="contact-form" method="post" action="/contato">
+				<input name="name" placeholder="Nome" required />
+				<input name="email" type="email" placeholder="Email" required />
+				<textarea name="message" placeholder="Mensagem" required></textarea>
+				<input name="source" type="hidden" value="contact-page" />
+				<button class="button" type="submit">Enviar mensagem</button>
+			</form>
+		</article>
+	</main>`;
+
+	return c.html(
+		layout("Contato", body, {
+			description: "Entre em contato com a UbuntuCode para projetos de API, automacao, Workers e IA aplicada.",
+			path: "/contato",
+		}),
+	);
+}
+
+export async function renderSitemap(c: Context<{ Bindings: AppEnv }>) {
+	const [projects, articles] = await Promise.all([
+		listProjects(c.env.DB, 100),
+		listArticles(c.env.DB, 100),
+	]);
+	const staticUrls = ["/", "/projetos", "/blog", "/contato", "/docs"];
+	const urls = [
+		...staticUrls.map((path) => ({ loc: absoluteUrl(path), lastmod: null })),
+		...projects.map((project) => ({
+			loc: absoluteUrl(`/projetos/${project.slug}`),
+			lastmod: project.updated_at,
+		})),
+		...articles.map((article) => ({
+			loc: absoluteUrl(`/blog/${article.slug}`),
+			lastmod: article.published_at || article.updated_at,
+		})),
+	];
+	const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+	.map(
+		(url) => `	<url>
+		<loc>${xmlEscape(url.loc)}</loc>
+		${url.lastmod ? `<lastmod>${xmlEscape(url.lastmod)}</lastmod>` : ""}
+	</url>`,
+	)
+	.join("\n")}
+</urlset>`;
+
+	return c.body(xml, 200, { "Content-Type": "application/xml; charset=utf-8" });
+}
+
+export function renderRobots(c: Context<{ Bindings: AppEnv }>) {
+	return c.text(
+		[
+			"User-agent: *",
+			"Allow: /",
+			"Disallow: /admin",
+			`Sitemap: ${absoluteUrl("/sitemap.xml")}`,
+			"",
+		].join("\n"),
+	);
+}
+
+export async function renderRss(c: Context<{ Bindings: AppEnv }>) {
+	const articles = await listArticles(c.env.DB, 30);
+	const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+	<channel>
+		<title>UbuntuCode</title>
+		<link>${xmlEscape(absoluteUrl("/blog"))}</link>
+		<description>${xmlEscape(DEFAULT_DESCRIPTION)}</description>
+${articles
+	.map(
+		(article) => `		<item>
+			<title>${xmlEscape(article.title)}</title>
+			<link>${xmlEscape(absoluteUrl(`/blog/${article.slug}`))}</link>
+			<guid>${xmlEscape(absoluteUrl(`/blog/${article.slug}`))}</guid>
+			<description>${xmlEscape(article.excerpt)}</description>
+			<pubDate>${new Date(article.published_at || article.created_at).toUTCString()}</pubDate>
+		</item>`,
+	)
+	.join("\n")}
+	</channel>
+</rss>`;
+
+	return c.body(xml, 200, { "Content-Type": "application/rss+xml; charset=utf-8" });
 }

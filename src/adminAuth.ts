@@ -72,6 +72,10 @@ function unauthorized(c: Context<{ Bindings: AppEnv }>) {
 	return c.text("Authentication required", 401);
 }
 
+function adminSecret(c: Context<{ Bindings: AppEnv }>) {
+	return c.env.ADMIN_PASSWORD ?? c.env.API_KEY;
+}
+
 export async function createAdminSession(secret: string) {
 	const expiresAt = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
 	const payload = `admin.${expiresAt}`;
@@ -81,7 +85,7 @@ export async function createAdminSession(secret: string) {
 }
 
 export async function hasValidAdminSession(c: Context<{ Bindings: AppEnv }>) {
-	const configuredKey = c.env.API_KEY;
+	const configuredKey = adminSecret(c);
 	if (!configuredKey) return false;
 
 	const cookie = getCookie(c, ADMIN_SESSION_COOKIE);
@@ -118,13 +122,13 @@ export function verifyAdminPassword(
 	c: Context<{ Bindings: AppEnv }>,
 	password: string,
 ) {
-	const configuredKey = c.env.API_KEY;
+	const configuredKey = c.env.ADMIN_PASSWORD ?? c.env.API_KEY;
 
 	return Boolean(configuredKey && password === configuredKey);
 }
 
 export async function requireAdmin(c: Context<{ Bindings: AppEnv }>) {
-	const configuredKey = c.env.API_KEY;
+	const configuredKey = adminSecret(c);
 	if (!configuredKey) {
 		return c.text("Admin authentication is not configured", 503);
 	}

@@ -609,6 +609,7 @@ export const adminHtml = String.raw`<!doctype html>
 			projects: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M6 7V5h12v2"/><rect x="4" y="7" width="16" height="13" rx="2"/></svg>',
 			articles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>',
 			users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+			leads: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>',
 			webhooks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16.98A6 6 0 0 0 12 7h-1"/><path d="M8 7H5"/><path d="m8 4-3 3 3 3"/><path d="M6 17a6 6 0 0 0 6-10"/><path d="M16 17h3"/><path d="m16 20 3-3-3-3"/></svg>',
 			ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>'
 		};
@@ -622,7 +623,9 @@ export const adminHtml = String.raw`<!doctype html>
 				fields: [
 					["slug", "Slug"], ["title", "Titulo"], ["summary", "Resumo", "textarea"],
 					["status", "Status", "select", ["draft", "active", "archived"]],
-					["repository_url", "Repositorio"], ["live_url", "URL publica"]
+					["repository_url", "Repositorio"], ["live_url", "URL publica"],
+					["image_url", "Imagem de capa"], ["tags", "Tags"],
+					["seo_title", "SEO title"], ["seo_description", "SEO description", "textarea"]
 				]
 			},
 			articles: {
@@ -633,7 +636,9 @@ export const adminHtml = String.raw`<!doctype html>
 				columns: ["slug", "title", "status", "excerpt"],
 				fields: [
 					["slug", "Slug"], ["title", "Titulo"], ["excerpt", "Resumo", "textarea"],
-					["content", "Conteudo", "textarea"], ["status", "Status", "select", ["draft", "published", "archived"]]
+					["content", "Conteudo", "textarea"], ["status", "Status", "select", ["draft", "published", "archived"]],
+					["image_url", "Imagem de capa"], ["category", "Categoria"], ["tags", "Tags"],
+					["seo_title", "SEO title"], ["seo_description", "SEO description", "textarea"]
 				]
 			},
 			users: {
@@ -643,6 +648,15 @@ export const adminHtml = String.raw`<!doctype html>
 				id: "id",
 				columns: ["id", "email", "name", "role"],
 				fields: [["email", "Email"], ["name", "Nome"], ["role", "Papel", "select", ["member", "admin"]]]
+			},
+			leads: {
+				title: "Leads",
+				subtitle: "Mensagens e oportunidades recebidas pelo site.",
+				path: "/leads",
+				id: "id",
+				readOnly: true,
+				authList: true,
+				columns: ["id", "name", "email", "source"]
 			},
 			webhooks: {
 				title: "Webhooks",
@@ -700,7 +714,7 @@ export const adminHtml = String.raw`<!doctype html>
 				["Projetos", state.metrics.projects ?? "–"],
 				["Artigos", state.metrics.articles ?? "–"],
 				["Usuários", state.metrics.users ?? "–"],
-				["Webhooks", state.metrics.webhooks ?? "–"]
+				["Leads", state.metrics.leads ?? "–"]
 			];
 			el("metrics").innerHTML = cards.map(([label, value]) =>
 				'<div class="metric"><span>' + label + '</span><strong>' + value + '</strong></div>'
@@ -765,9 +779,13 @@ export const adminHtml = String.raw`<!doctype html>
 				return '<div class="field"><label for="' + name + '">' + label + '</label><input id="' + name + '" name="' + name + '" value="' + escapeHtml(value) + '" /></div>';
 			}).join("");
 			const articleTools = state.current === "articles"
-				? '<div class="ai-tools"><strong>IA editorial</strong><div class="ai-actions"><button type="button" data-ai-article="title">Sugerir título</button><button type="button" data-ai-article="excerpt">Gerar resumo</button><button type="button" data-ai-article="improve">Melhorar texto</button><button type="button" data-ai-article="tags">Sugerir tags</button></div><div class="ai-suggestion" id="articleSuggestion"></div></div>'
+				? '<div class="ai-tools"><strong>IA editorial</strong><div class="ai-actions"><button type="button" data-ai-article="title">Sugerir título</button><button type="button" data-ai-article="excerpt">Gerar resumo</button><button type="button" data-ai-article="improve">Melhorar texto</button><button type="button" data-ai-article="tags">Sugerir tags</button><button type="button" data-ai-article="full">Gerar artigo</button><button type="button" data-ai-article="seo">Gerar SEO</button><button type="button" data-ai-article="linkedin">Post LinkedIn</button><button type="button" data-ai-article="tone">Reescrever tom</button></div><div class="ai-suggestion" id="articleSuggestion"></div></div>'
 				: '';
-			el("editor").innerHTML = '<div class="form-grid">' + fields + articleTools + '</div><button type="submit">' + (state.editing ? "Salvar alteracoes" : "Criar") + '</button>';
+			const previewPath = state.current === "articles" ? "/blog/" : state.current === "projects" ? "/projetos/" : "";
+			const preview = previewPath && (current.slug || el("slug")?.value)
+				? '<a class="button secondary" target="_blank" href="' + previewPath + encodeURIComponent(current.slug || "") + '">Preview público</a>'
+				: '';
+			el("editor").innerHTML = '<div class="form-grid">' + fields + articleTools + '</div><div class="actions">' + preview + '<button type="submit">' + (state.editing ? "Salvar alteracoes" : "Criar") + '</button></div>';
 			document.querySelectorAll("[data-ai-article]").forEach((button) => {
 				button.addEventListener("click", () => runArticleAi(button.dataset.aiArticle));
 			});
@@ -791,7 +809,7 @@ export const adminHtml = String.raw`<!doctype html>
 		function formPayload(resource) {
 			const data = new FormData(el("editor"));
 			const payload = {};
-			const nullableFields = new Set(["repository_url", "live_url", "published_at"]);
+			const nullableFields = new Set(["repository_url", "live_url", "published_at", "image_url", "tags", "category", "seo_title", "seo_description"]);
 			for (const [key, value] of data.entries()) {
 				const text = String(value);
 				payload[key] = nullableFields.has(key) && text.trim() === "" ? null : text;
@@ -814,6 +832,8 @@ export const adminHtml = String.raw`<!doctype html>
 				title: el("title")?.value || "",
 				excerpt: el("excerpt")?.value || "",
 				content: el("content")?.value || "",
+				briefing: el("content")?.value || el("excerpt")?.value || "",
+				tone: "tecnico, claro e util",
 			};
 		}
 		async function runArticleAi(action) {
@@ -829,7 +849,16 @@ export const adminHtml = String.raw`<!doctype html>
 				const suggestion = result.suggestion || "";
 				if (action === "title" && el("title")) el("title").value = suggestion;
 				if (action === "excerpt" && el("excerpt")) el("excerpt").value = suggestion;
-				if (action === "improve" && el("content")) el("content").value = suggestion;
+				if ((action === "improve" || action === "full" || action === "tone") && el("content")) el("content").value = suggestion;
+				if (action === "tags" && el("tags")) el("tags").value = suggestion;
+				if (action === "seo") {
+					try {
+						const seo = JSON.parse(suggestion);
+						if (seo.title && el("seo_title")) el("seo_title").value = seo.title;
+						if (seo.description && el("seo_description")) el("seo_description").value = seo.description;
+						if (seo.tags && el("tags")) el("tags").value = Array.isArray(seo.tags) ? seo.tags.join(", ") : seo.tags;
+					} catch {}
+				}
 				if (output) {
 					output.textContent = action === "tags" ? "Tags sugeridas: " + suggestion : suggestion;
 					output.classList.add("show");
@@ -843,7 +872,7 @@ export const adminHtml = String.raw`<!doctype html>
 				toast(error.message);
 			} finally {
 				if (button) {
-					const labels = { title: "Sugerir título", excerpt: "Gerar resumo", improve: "Melhorar texto", tags: "Sugerir tags" };
+					const labels = { title: "Sugerir título", excerpt: "Gerar resumo", improve: "Melhorar texto", tags: "Sugerir tags", full: "Gerar artigo", seo: "Gerar SEO", linkedin: "Post LinkedIn", tone: "Reescrever tom" };
 					button.textContent = labels[action] || "Gerar";
 				}
 			}
@@ -905,7 +934,7 @@ export const adminHtml = String.raw`<!doctype html>
 			box.scrollTop = box.scrollHeight;
 		}
 		async function loadMetrics() {
-			const names = ["projects", "articles", "users"];
+			const names = ["projects", "articles", "users", "leads"];
 			await Promise.all(names.map(async (name) => {
 				try {
 					state.metrics[name] = (await request(resources[name].path)).length;

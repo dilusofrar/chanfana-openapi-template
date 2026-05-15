@@ -147,7 +147,7 @@ describe("Public site", () => {
 		expect(html).toContain("Projeto publico");
 		expect(html).toContain("Resumo publico");
 		expect(html).toContain(
-			`<link rel="canonical" href="https://api.ubuntucode.com/site/projects/${slug}"`,
+			`<link rel="canonical" href="https://api.ubuntucode.com/projetos/${slug}"`,
 		);
 		expect(html).toContain("Todos os projetos");
 	});
@@ -179,5 +179,33 @@ describe("Public site", () => {
 		expect(html).toContain("Segundo paragrafo.");
 		expect(html).toContain('property="og:type" content="article"');
 		expect(html).toContain("Todos os artigos");
+	});
+
+	it("serves public SEO utilities", async () => {
+		const [robots, sitemap, rss] = await Promise.all([
+			SELF.fetch("http://local.test/robots.txt"),
+			SELF.fetch("http://local.test/sitemap.xml"),
+			SELF.fetch("http://local.test/rss.xml"),
+		]);
+
+		expect(robots.status).toBe(200);
+		expect(await robots.text()).toContain("Sitemap:");
+		expect(sitemap.status).toBe(200);
+		expect(await sitemap.text()).toContain("<urlset");
+		expect(rss.status).toBe(200);
+		expect(await rss.text()).toContain("<rss");
+	});
+
+	it("serves friendly public aliases", async () => {
+		const [projects, articles, contact] = await Promise.all([
+			SELF.fetch("http://local.test/projetos"),
+			SELF.fetch("http://local.test/blog"),
+			SELF.fetch("http://local.test/contato"),
+		]);
+
+		expect(projects.status).toBe(200);
+		expect(articles.status).toBe(200);
+		expect(contact.status).toBe(200);
+		expect(await contact.text()).toContain("Enviar mensagem");
 	});
 });

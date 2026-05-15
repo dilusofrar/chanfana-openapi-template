@@ -10,6 +10,7 @@ import {
 	webhookEventSchema,
 } from "../schemas";
 import { getById, notFound } from "../db";
+import { enforceRateLimit } from "../rateLimit";
 import { z } from "zod";
 
 export class WebhookList extends OpenAPIRoute {
@@ -57,6 +58,13 @@ export class WebhookRead extends OpenAPIRoute {
 	};
 
 	async handle(c: AppContext) {
+		const limited = await enforceRateLimit(c, {
+			name: "webhooks",
+			limit: 120,
+			windowSeconds: 60,
+		});
+		if (limited) return limited;
+
 		const unauthorized = await requireApiKey(c);
 		if (unauthorized) return unauthorized;
 
