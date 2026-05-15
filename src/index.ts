@@ -22,7 +22,7 @@ import {
 	ArticleAiAssist,
 } from "./endpoints/ai";
 import { AssetUpload } from "./endpoints/assets";
-import { LeadCreate, LeadList, NewsletterSubscribe } from "./endpoints/leads";
+import { LeadCreate, LeadList, LeadUpdate, NewsletterSubscribe } from "./endpoints/leads";
 import {
 	ProjectCreate,
 	ProjectDelete,
@@ -164,19 +164,43 @@ app.post("/contato", async (c) => {
 	if (limited) return limited;
 
 	const form = await c.req.raw.formData();
+	const now = nowIso();
 	await c.env.DB.prepare(
-		"INSERT INTO leads (name, email, message, source, created_at) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO leads (name, email, message, source, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'new', ?, ?)",
 	)
 		.bind(
 			String(form.get("name") ?? ""),
 			String(form.get("email") ?? ""),
 			String(form.get("message") ?? ""),
 			String(form.get("source") ?? "contact-page"),
-			nowIso(),
+			now,
+			now,
 		)
 		.run();
 
 	return c.redirect("/contato?sent=1", 303);
+});
+app.post("/newsletter/subscribe", async (c) => {
+	const limited = await enforceRateLimit(c, {
+		name: "newsletter-form",
+		limit: 10,
+		windowSeconds: 60,
+	});
+	if (limited) return limited;
+
+	const form = await c.req.raw.formData();
+	const email = String(form.get("email") ?? "").trim().toLowerCase();
+	if (!email) return c.redirect("/?newsletter=invalid", 303);
+
+	await c.env.DB.prepare(
+		`INSERT INTO newsletter_subscribers (email, status)
+		 VALUES (?, 'active')
+		 ON CONFLICT(email) DO UPDATE SET status = 'active'`,
+	)
+		.bind(email)
+		.run();
+
+	return c.redirect("/?newsletter=ok", 303);
 });
 app.get("/sitemap.xml", renderSitemap);
 app.get("/robots.txt", renderRobots);
@@ -263,6 +287,7 @@ openapi.get("/ai/drafts", AiDraftList);
 openapi.post("/ai/drafts", AiDraftCreate);
 openapi.get("/leads", LeadList);
 openapi.post("/leads", LeadCreate);
+openapi.patch("/leads/:id", LeadUpdate);
 openapi.post("/newsletter", NewsletterSubscribe);
 openapi.post("/assets/upload", AssetUpload);
 

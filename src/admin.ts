@@ -695,9 +695,13 @@ export const adminHtml = String.raw`<!doctype html>
 				subtitle: "Mensagens e oportunidades recebidas pelo site.",
 				path: "/leads",
 				id: "id",
-				readOnly: true,
 				authList: true,
-				columns: ["id", "name", "email", "source", "message"]
+				columns: ["id", "name", "email", "status", "source"],
+				fields: [
+					["name", "Nome"], ["email", "Email"], ["message", "Mensagem", "textarea"],
+					["source", "Origem"], ["status", "Status", "select", ["new", "contacted", "qualified", "won", "lost"]],
+					["notes", "Notas", "textarea"]
+				]
 			},
 			history: {
 				title: "Histórico de IA",

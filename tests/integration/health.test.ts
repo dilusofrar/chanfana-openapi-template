@@ -121,6 +121,7 @@ describe("Public site", () => {
 		expect(html).toContain("static.cloudflareinsights.com/beacon.min.js");
 		expect(html).toContain("APIs serverless");
 		expect(html).toContain("IA aplicada");
+		expect(html).toContain("/newsletter/subscribe");
 	});
 
 	it("keeps the legacy public site alias", async () => {

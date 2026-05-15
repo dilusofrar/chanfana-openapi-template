@@ -145,6 +145,8 @@ export const webhookEventSchema = z.object({
 	event_type: z.string(),
 	payload: z.string(),
 	received_at: z.string(),
+	processed_at: z.string().nullable(),
+	action_result: z.string().nullable(),
 });
 
 export const webhookCreateSchema = z.object({
@@ -179,8 +181,20 @@ export const leadSchema = z.object({
 	email: z.string(),
 	message: z.string(),
 	source: z.string(),
+	status: z.enum(["new", "contacted", "qualified", "won", "lost"]),
+	notes: z.string().nullable(),
 	created_at: z.string(),
+	updated_at: z.string(),
 });
+
+export const leadUpdateSchema = z.object({
+	name: z.string().min(1).max(120).optional(),
+	email: z.string().email().optional(),
+	message: z.string().min(1).max(2000).optional(),
+	source: z.string().min(1).max(80).optional(),
+	status: z.enum(["new", "contacted", "qualified", "won", "lost"]).optional(),
+	notes: z.string().nullable().optional(),
+}).refine((data) => Object.keys(data).length > 0, "Provide at least one field to update.");
 
 export const newsletterCreateSchema = z.object({
 	email: z.string().email(),

@@ -375,6 +375,37 @@ function layout(
 			gap: 12px;
 			margin-top: 18px;
 		}
+		.newsletter {
+			margin-top: 34px;
+			background: #122029;
+			color: white;
+			border-radius: 8px;
+			padding: 22px;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+			gap: 18px;
+			align-items: center;
+		}
+		.newsletter h2 {
+			margin: 0 0 6px;
+			font-size: 22px;
+		}
+		.newsletter p {
+			margin: 0;
+			color: #dce7ed;
+		}
+		.newsletter form {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 8px;
+		}
+		.newsletter input {
+			min-height: 42px;
+			border: 1px solid rgba(255,255,255,0.2);
+			border-radius: 7px;
+			padding: 0 12px;
+			font: inherit;
+		}
 		.actions {
 			display: flex;
 			gap: 10px;
@@ -416,7 +447,7 @@ function layout(
 			text-align: center;
 		}
 		@media (max-width: 860px) {
-			.grid, .feature-strip, .article-shell { grid-template-columns: 1fr; }
+			.grid, .feature-strip, .article-shell, .newsletter, .newsletter form { grid-template-columns: 1fr; }
 			.nav { align-items: flex-start; flex-direction: column; }
 			.hero { padding-top: 42px; }
 			.sidebar { position: static; }
@@ -444,6 +475,19 @@ function layout(
 
 function hero(title: string, subtitle: string, actions = "") {
 	return `<section class="header"><div class="hero"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle)}</p>${actions}</div></section>`;
+}
+
+function newsletterBlock() {
+	return `<section class="newsletter">
+		<div>
+			<h2>Receba novidades da UbuntuCode</h2>
+			<p>Artigos, projetos e aprendizados práticos sobre APIs, IA e Cloudflare.</p>
+		</div>
+		<form method="post" action="/newsletter/subscribe">
+			<input name="email" type="email" placeholder="seu@email.com" required />
+			<button class="button light" type="submit">Assinar</button>
+		</form>
+	</section>`;
 }
 
 function projectCard(project: ProjectRow) {
@@ -510,6 +554,7 @@ export async function renderHome(c: Context<{ Bindings: AppEnv }>) {
 		<br>
 		<div class="section-head"><h2>Artigos</h2><a href="/blog">Ver todos</a></div>
 		${articles.length ? `<div class="grid">${articles.map(articleCard).join("")}</div>` : '<div class="empty">Nenhum artigo publicado ainda.</div>'}
+		${newsletterBlock()}
 	</main>`;
 
 	return c.html(
@@ -645,6 +690,7 @@ export async function renderContact(c: Context<{ Bindings: AppEnv }>) {
 				<button class="button" type="submit">Enviar mensagem</button>
 			</form>
 		</article>
+		${newsletterBlock()}
 	</main>`;
 
 	return c.html(

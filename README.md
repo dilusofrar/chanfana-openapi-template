@@ -25,6 +25,7 @@ Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, gener
 - `GET /articles` lists articles.
 - `GET /articles/:slug` reads one article.
 - `POST /leads` stores a public contact lead.
+- `PATCH /leads/:id` updates lead status and notes.
 - `POST /newsletter` subscribes an email to the newsletter.
 - `GET /users` lists users.
 - `GET /users/:id` reads one user.
@@ -177,7 +178,12 @@ Webhooks are a technical inbox for events sent by other services. They are usefu
 - A no-code form tool sends a new lead.
 - Another automation sends a deploy, backup, or job completion event.
 
-For now, webhooks are stored in `webhook_events` for audit/history. Later they can trigger actions, such as creating leads, notifying Slack/email, starting AI summaries, or updating project status.
+Webhooks are stored in `webhook_events` for audit/history. Some events already trigger actions:
+
+- `lead.created` or `contact.created` with `name`, `email`, and `message` creates a lead.
+- `newsletter.subscribe` with `email` subscribes the email to the newsletter.
+
+Later they can also notify Slack/email, start AI summaries, or update project status.
 
 The `POST /ai/assist` and `POST /ai/articles` endpoints use the Cloudflare Workers AI binding in production with `@cf/meta/llama-3.1-8b-instruct`. In local/test environments without an AI binding, they return fallback responses so development stays fast and offline-friendly.
 

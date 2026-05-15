@@ -1,12 +1,14 @@
 import { contentJson, OpenAPIRoute } from "chanfana";
 import type { AppContext } from "../types";
 import { requireApiKey } from "../auth";
-import { nowIso } from "../db";
+import { buildUpdate, getById, notFound, nowIso } from "../db";
 import { enforceRateLimit } from "../rateLimit";
 import {
 	errorResponse,
+	idParam,
 	leadCreateSchema,
 	leadSchema,
+	leadUpdateSchema,
 	listQuery,
 	newsletterCreateSchema,
 	newsletterSubscriberSchema,
@@ -67,9 +69,9 @@ export class LeadCreate extends OpenAPIRoute {
 		const data = await this.getValidatedData<typeof this.schema>();
 		const now = nowIso();
 		await c.env.DB.prepare(
-			"INSERT INTO leads (name, email, message, source, created_at) VALUES (?, ?, ?, ?, ?)",
+			"INSERT INTO leads (name, email, message, source, status, created_at, updated_at) VALUES (?, ?, ?, ?, 'new', ?, ?)",
 		)
-			.bind(data.body.name, data.body.email, data.body.message, data.body.source, now)
+			.bind(data.body.name, data.body.email, data.body.message, data.body.source, now, now)
 			.run();
 		const lead = await c.env.DB.prepare(
 			"SELECT * FROM leads WHERE email = ? AND created_at = ?",
@@ -78,6 +80,53 @@ export class LeadCreate extends OpenAPIRoute {
 			.first();
 
 		return c.json({ success: true, result: lead }, 201);
+	}
+}
+
+export class LeadUpdate extends OpenAPIRoute {
+	schema = {
+		tags: ["Leads"],
+		summary: "Update a contact lead",
+		request: {
+			params: idParam,
+			body: contentJson(leadUpdateSchema),
+		},
+		responses: {
+			"200": {
+				description: "Updated lead",
+				...contentJson(successResponse(leadSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+			"404": { description: "Not found", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = await requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const existing = await getById(c.env.DB, "leads", data.params.id);
+		if (!existing) return c.json(notFound("Lead"), 404);
+
+		const update = buildUpdate(
+			"leads",
+			{
+				name: data.body.name,
+				email: data.body.email,
+				message: data.body.message,
+				source: data.body.source,
+				status: data.body.status,
+				notes: data.body.notes,
+			},
+			"id",
+		);
+		await c.env.DB.prepare(update.sql)
+			.bind(...update.values, nowIso(), data.params.id)
+			.run();
+		const lead = await getById(c.env.DB, "leads", data.params.id);
+
+		return c.json({ success: true, result: lead });
 	}
 }
 

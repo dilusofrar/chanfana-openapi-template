@@ -256,24 +256,30 @@ describe("UbuntuCode API", () => {
 	});
 
 	it("stores webhook events", async () => {
+		const email = `webhook-${crypto.randomUUID()}@ubuntucode.com`;
 		const response = await SELF.fetch("http://local.test/webhooks/events", {
 			method: "POST",
 			headers: authHeaders,
 			body: JSON.stringify({
 				source: "github",
-				event_type: "push",
-				payload: { branch: "main" },
+				event_type: "lead.created",
+				payload: { name: "Webhook Lead", email, message: "Lead via webhook" },
 			}),
 		});
 		const body = await response.json<{
 			success: boolean;
-			result: { source: string; event_type: string; payload: string };
+			result: { source: string; event_type: string; payload: string; action_result: string };
 		}>();
 
 		expect(response.status).toBe(202);
 		expect(body.result.source).toBe("github");
-		expect(body.result.event_type).toBe("push");
-		expect(JSON.parse(body.result.payload)).toEqual({ branch: "main" });
+		expect(body.result.event_type).toBe("lead.created");
+		expect(body.result.action_result).toBe("created lead");
+		expect(JSON.parse(body.result.payload)).toEqual({
+			name: "Webhook Lead",
+			email,
+			message: "Lead via webhook",
+		});
 
 		const listResponse = await SELF.fetch("http://local.test/webhooks/events", {
 			headers: { "x-api-key": "test-api-key" },
@@ -284,6 +290,15 @@ describe("UbuntuCode API", () => {
 
 		expect(listResponse.status).toBe(200);
 		expect(list.result.some((event) => event.source === "github")).toBe(true);
+
+		const leadsResponse = await SELF.fetch("http://local.test/leads", {
+			headers: { "x-api-key": "test-api-key" },
+		});
+		const leads = await leadsResponse.json<{
+			result: Array<{ email: string; source: string }>;
+		}>();
+
+		expect(leads.result.some((lead) => lead.email === email && lead.source === "webhook:github")).toBe(true);
 	});
 
 	it("responds to AI assist requests", async () => {
@@ -373,7 +388,7 @@ describe("UbuntuCode API", () => {
 			}),
 		});
 		const lead = await leadResponse.json<{
-			result: { email: string; source: string };
+			result: { id: number; email: string; source: string };
 		}>();
 
 		expect(leadResponse.status).toBe(201);
@@ -387,6 +402,22 @@ describe("UbuntuCode API", () => {
 		});
 
 		expect(newsletterResponse.status).toBe(201);
+
+		const updateResponse = await SELF.fetch(
+			`http://local.test/leads/${lead.result.id}`,
+			{
+				method: "PATCH",
+				headers: authHeaders,
+				body: JSON.stringify({ status: "contacted", notes: "Respondido por email." }),
+			},
+		);
+		const updated = await updateResponse.json<{
+			result: { status: string; notes: string };
+		}>();
+
+		expect(updateResponse.status).toBe(200);
+		expect(updated.result.status).toBe("contacted");
+		expect(updated.result.notes).toBe("Respondido por email.");
 	});
 
 	it("returns a clear asset upload error when R2 is not bound in tests", async () => {
