@@ -426,6 +426,58 @@ export const adminHtml = String.raw`<!doctype html>
 			color: var(--muted);
 			text-align: center;
 		}
+		.chat {
+			padding: 16px;
+			display: grid;
+			grid-template-rows: minmax(260px, 1fr) auto;
+			gap: 12px;
+		}
+		.messages {
+			min-height: 300px;
+			max-height: 520px;
+			overflow-y: auto;
+			display: grid;
+			align-content: start;
+			gap: 10px;
+			padding: 4px 2px;
+		}
+		.bubble {
+			width: min(88%, 620px);
+			border-radius: 8px;
+			padding: 11px 12px;
+			line-height: 1.45;
+			white-space: pre-wrap;
+			font-size: 14px;
+		}
+		.bubble.user {
+			justify-self: end;
+			background: var(--brand);
+			color: white;
+		}
+		.bubble.assistant {
+			justify-self: start;
+			background: var(--soft);
+			color: var(--ink);
+		}
+		.bubble.loading {
+			color: var(--muted);
+			font-style: italic;
+		}
+		.composer {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 10px;
+			padding: 0;
+		}
+		.composer textarea {
+			min-height: 48px;
+			max-height: 130px;
+		}
+		.composer button {
+			min-width: 96px;
+			height: 48px;
+			align-self: end;
+		}
 		.toast {
 			position: fixed;
 			right: 18px;
@@ -458,6 +510,8 @@ export const adminHtml = String.raw`<!doctype html>
 			.metrics { grid-template-columns: 1fr; }
 			.form-grid { grid-template-columns: 1fr; }
 			.sidebar { padding: 16px; }
+			.composer { grid-template-columns: 1fr; }
+			.composer button { width: 100%; }
 		}
 	</style>
 </head>
@@ -571,7 +625,7 @@ export const adminHtml = String.raw`<!doctype html>
 				ai: true
 			}
 		};
-		const state = { current: "projects", rows: [], editing: null, metrics: {} };
+		const state = { current: "projects", rows: [], editing: null, metrics: {}, aiMessages: [] };
 		const el = (id) => document.getElementById(id);
 		function toast(message) {
 			const node = el("toast");
@@ -624,7 +678,7 @@ export const adminHtml = String.raw`<!doctype html>
 		}
 		function renderTable(resource) {
 			if (resource.ai) {
-				el("table").innerHTML = '<div class="empty">Use o formulario ao lado para consultar o assistente.</div>';
+				el("table").innerHTML = '<div class="empty">A conversa acontece no painel ao lado.</div>';
 				return;
 			}
 			if (!state.rows.length) {
@@ -655,8 +709,16 @@ export const adminHtml = String.raw`<!doctype html>
 				return;
 			}
 			if (resource.ai) {
-				el("formTitle").textContent = "Perguntar";
-				el("editor").innerHTML = '<div class="field"><label for="prompt">Prompt</label><textarea id="prompt" name="prompt" required></textarea></div><button type="submit">Enviar</button><div id="aiAnswer" class="empty"></div>';
+				el("formTitle").textContent = "Conversa";
+				el("editor").innerHTML = '<div class="chat"><div class="messages" id="messages"></div><div class="composer"><textarea id="prompt" name="prompt" placeholder="Escreva e pressione Enter" required></textarea><button id="sendPrompt" type="submit">Enviar</button></div></div>';
+				renderMessages();
+				const prompt = el("prompt");
+				prompt.addEventListener("keydown", (event) => {
+					if (event.key === "Enter" && !event.shiftKey) {
+						event.preventDefault();
+						el("editor").requestSubmit();
+					}
+				});
 				return;
 			}
 			el("formTitle").textContent = state.editing ? "Editar registro" : "Novo registro";
@@ -702,13 +764,22 @@ export const adminHtml = String.raw`<!doctype html>
 			const resource = resources[state.current];
 			try {
 				if (resource.ai) {
-					const prompt = new FormData(el("editor")).get("prompt");
+					const promptEl = el("prompt");
+					const prompt = String(promptEl.value || "").trim();
+					if (!prompt) return;
+					promptEl.value = "";
+					promptEl.focus();
+					state.aiMessages.push({ role: "user", content: prompt });
+					state.aiMessages.push({ role: "assistant", content: "Pensando...", loading: true });
+					renderMessages();
 					const result = await request(resource.path, {
 						method: "POST",
 						headers: headers(),
 						body: JSON.stringify({ prompt })
 					});
-					el("aiAnswer").textContent = result.answer;
+					state.aiMessages.pop();
+					state.aiMessages.push({ role: "assistant", content: result.answer });
+					renderMessages();
 					return;
 				}
 				const key = state.editing?.[resource.id];
@@ -723,8 +794,26 @@ export const adminHtml = String.raw`<!doctype html>
 				state.editing = null;
 				await load();
 			} catch (error) {
+				if (resources[state.current].ai) {
+					const last = state.aiMessages[state.aiMessages.length - 1];
+					if (last?.loading) state.aiMessages.pop();
+					state.aiMessages.push({ role: "assistant", content: error.message });
+					renderMessages();
+				}
 				toast(error.message);
 			}
+		}
+		function renderMessages() {
+			const box = el("messages");
+			if (!box) return;
+			if (!state.aiMessages.length) {
+				box.innerHTML = '<div class="empty">Comece com uma pergunta, ideia de artigo, resumo de projeto ou comando operacional.</div>';
+				return;
+			}
+			box.innerHTML = state.aiMessages.map((message) =>
+				'<div class="bubble ' + message.role + (message.loading ? ' loading' : '') + '">' + escapeHtml(message.content) + '</div>'
+			).join("");
+			box.scrollTop = box.scrollHeight;
 		}
 		async function loadMetrics() {
 			const names = ["projects", "articles", "users"];
@@ -744,6 +833,7 @@ export const adminHtml = String.raw`<!doctype html>
 			el("pageTitle").textContent = resource.title;
 			el("pageSubtitle").textContent = resource.subtitle;
 			el("listTitle").textContent = resource.title;
+			el("clearForm").textContent = resource.ai ? "Nova conversa" : "Limpar";
 			renderForm(resource);
 			if (!resource.ai) {
 				try {
@@ -766,6 +856,9 @@ export const adminHtml = String.raw`<!doctype html>
 			}
 		}
 		el("clearForm").addEventListener("click", () => {
+			if (resources[state.current].ai) {
+				state.aiMessages = [];
+			}
 			state.editing = null;
 			renderForm(resources[state.current]);
 		});
