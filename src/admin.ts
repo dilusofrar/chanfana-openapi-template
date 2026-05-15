@@ -792,12 +792,14 @@ export const adminHtml = String.raw`<!doctype html>
 		function formPayload(resource) {
 			const data = new FormData(el("editor"));
 			const payload = {};
+			const nullableFields = new Set(["repository_url", "live_url", "published_at"]);
 			for (const [key, value] of data.entries()) {
-				payload[key] = value === "" ? null : value;
+				const text = String(value);
+				payload[key] = nullableFields.has(key) && text.trim() === "" ? null : text;
 			}
 			if (!state.editing) return payload;
 			for (const key of Object.keys(payload)) {
-				if (payload[key] === state.editing[key]) delete payload[key];
+				if ((payload[key] ?? "") === (state.editing[key] ?? "")) delete payload[key];
 			}
 			return payload;
 		}
