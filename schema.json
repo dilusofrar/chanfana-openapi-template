@@ -795,6 +795,31 @@
                             ],
                             "format": "uri"
                           },
+                          "image_url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri"
+                          },
+                          "tags": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "seo_title": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "seo_description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "created_at": {
                             "type": "string"
                           },
@@ -810,6 +835,10 @@
                           "status",
                           "repository_url",
                           "live_url",
+                          "image_url",
+                          "tags",
+                          "seo_title",
+                          "seo_description",
                           "created_at",
                           "updated_at"
                         ]
@@ -873,6 +902,31 @@
                       "null"
                     ],
                     "format": "uri"
+                  },
+                  "image_url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  },
+                  "tags": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -935,6 +989,31 @@
                           ],
                           "format": "uri"
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -950,6 +1029,10 @@
                         "status",
                         "repository_url",
                         "live_url",
+                        "image_url",
+                        "tags",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -1075,6 +1158,31 @@
                           ],
                           "format": "uri"
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -1090,6 +1198,10 @@
                         "status",
                         "repository_url",
                         "live_url",
+                        "image_url",
+                        "tags",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -1203,6 +1315,31 @@
                       "null"
                     ],
                     "format": "uri"
+                  },
+                  "image_url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  },
+                  "tags": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 }
               }
@@ -1260,6 +1397,31 @@
                           ],
                           "format": "uri"
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -1275,6 +1437,10 @@
                         "status",
                         "repository_url",
                         "live_url",
+                        "image_url",
+                        "tags",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -1438,6 +1604,31 @@
                           ],
                           "format": "uri"
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -1453,6 +1644,10 @@
                         "status",
                         "repository_url",
                         "live_url",
+                        "image_url",
+                        "tags",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -1630,6 +1825,37 @@
                               "null"
                             ]
                           },
+                          "image_url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri"
+                          },
+                          "tags": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "category": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "seo_title": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "seo_description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "created_at": {
                             "type": "string"
                           },
@@ -1645,6 +1871,11 @@
                           "content",
                           "status",
                           "published_at",
+                          "image_url",
+                          "tags",
+                          "category",
+                          "seo_title",
+                          "seo_description",
                           "created_at",
                           "updated_at"
                         ]
@@ -1705,6 +1936,37 @@
                       "null"
                     ],
                     "format": "date-time"
+                  },
+                  "image_url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  },
+                  "tags": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "category": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -1763,6 +2025,37 @@
                             "null"
                           ]
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "category": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -1778,6 +2071,11 @@
                         "content",
                         "status",
                         "published_at",
+                        "image_url",
+                        "tags",
+                        "category",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -1898,6 +2196,37 @@
                             "null"
                           ]
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "category": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -1913,6 +2242,11 @@
                         "content",
                         "status",
                         "published_at",
+                        "image_url",
+                        "tags",
+                        "category",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -2023,6 +2357,37 @@
                       "null"
                     ],
                     "format": "date-time"
+                  },
+                  "image_url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  },
+                  "tags": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "category": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "seo_description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 }
               }
@@ -2075,6 +2440,37 @@
                             "null"
                           ]
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "category": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -2090,6 +2486,11 @@
                         "content",
                         "status",
                         "published_at",
+                        "image_url",
+                        "tags",
+                        "category",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -2248,6 +2649,37 @@
                             "null"
                           ]
                         },
+                        "image_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uri"
+                        },
+                        "tags": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "category": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_title": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "seo_description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
                         "created_at": {
                           "type": "string"
                         },
@@ -2263,6 +2695,11 @@
                         "content",
                         "status",
                         "published_at",
+                        "image_url",
+                        "tags",
+                        "category",
+                        "seo_title",
+                        "seo_description",
                         "created_at",
                         "updated_at"
                       ]
@@ -2891,7 +3328,11 @@
                       "title",
                       "excerpt",
                       "improve",
-                      "tags"
+                      "tags",
+                      "full",
+                      "seo",
+                      "linkedin",
+                      "tone"
                     ]
                   },
                   "title": {
@@ -2905,6 +3346,14 @@
                   "content": {
                     "type": "string",
                     "default": ""
+                  },
+                  "briefing": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "tone": {
+                    "type": "string",
+                    "default": "tecnico e claro"
                   }
                 },
                 "required": [
@@ -2937,7 +3386,11 @@
                             "title",
                             "excerpt",
                             "improve",
-                            "tags"
+                            "tags",
+                            "full",
+                            "seo",
+                            "linkedin",
+                            "tone"
                           ]
                         },
                         "suggestion": {
@@ -2964,6 +3417,444 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leads": {
+      "get": {
+        "tags": [
+          "Leads"
+        ],
+        "summary": "List contact leads",
+        "operationId": "get_LeadList",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leads list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "email",
+                          "message",
+                          "source",
+                          "created_at"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "result"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Leads"
+        ],
+        "summary": "Create a contact lead",
+        "operationId": "post_LeadCreate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "default": "contact"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "message"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created lead",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "message",
+                        "source",
+                        "created_at"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "result"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/newsletter": {
+      "post": {
+        "tags": [
+          "Newsletter"
+        ],
+        "summary": "Subscribe an email to the newsletter",
+        "operationId": "post_NewsletterSubscribe",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Subscriber",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "active",
+                            "unsubscribed"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "email",
+                        "status",
+                        "created_at"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "result"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets/upload": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Upload an image asset to R2",
+        "operationId": "post_AssetUpload",
+        "responses": {
+          "201": {
+            "description": "Uploaded asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "url"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "result"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "message"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "R2 not configured",
             "content": {
               "application/json": {
                 "schema": {
