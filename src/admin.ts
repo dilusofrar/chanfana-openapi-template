@@ -633,8 +633,7 @@ export const adminHtml = String.raw`<!doctype html>
 				columns: ["slug", "title", "status", "excerpt"],
 				fields: [
 					["slug", "Slug"], ["title", "Titulo"], ["excerpt", "Resumo", "textarea"],
-					["content", "Conteudo", "textarea"], ["status", "Status", "select", ["draft", "published", "archived"]],
-					["published_at", "Publicado em"]
+					["content", "Conteudo", "textarea"], ["status", "Status", "select", ["draft", "published", "archived"]]
 				]
 			},
 			users: {
@@ -796,6 +795,13 @@ export const adminHtml = String.raw`<!doctype html>
 			for (const [key, value] of data.entries()) {
 				const text = String(value);
 				payload[key] = nullableFields.has(key) && text.trim() === "" ? null : text;
+			}
+			if (state.current === "articles" && payload.status === "published") {
+				const currentPublishedAt = state.editing?.published_at;
+				payload.published_at = currentPublishedAt || new Date().toISOString();
+			}
+			if (state.current === "articles" && payload.status && payload.status !== "published") {
+				payload.published_at = null;
 			}
 			if (!state.editing) return payload;
 			for (const key of Object.keys(payload)) {
