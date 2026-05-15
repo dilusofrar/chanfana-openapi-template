@@ -478,6 +478,41 @@ export const adminHtml = String.raw`<!doctype html>
 			height: 48px;
 			align-self: end;
 		}
+		.ai-tools {
+			grid-column: 1 / -1;
+			display: grid;
+			gap: 10px;
+			padding: 12px;
+			border: 1px solid var(--line);
+			border-radius: var(--radius);
+			background: #fbfcfd;
+		}
+		.ai-tools strong {
+			font-size: 13px;
+		}
+		.ai-actions {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 8px;
+		}
+		.ai-actions button {
+			background: white;
+			color: var(--ink);
+			border-color: var(--line);
+		}
+		.ai-suggestion {
+			display: none;
+			border-left: 3px solid var(--brand);
+			padding: 10px 12px;
+			background: white;
+			color: var(--muted);
+			font-size: 13px;
+			line-height: 1.45;
+			white-space: pre-wrap;
+		}
+		.ai-suggestion.show {
+			display: block;
+		}
 		.toast {
 			position: fixed;
 			right: 18px;
@@ -512,6 +547,7 @@ export const adminHtml = String.raw`<!doctype html>
 			.sidebar { padding: 16px; }
 			.composer { grid-template-columns: 1fr; }
 			.composer button { width: 100%; }
+			.ai-actions { grid-template-columns: 1fr; }
 		}
 	</style>
 </head>
@@ -729,7 +765,13 @@ export const adminHtml = String.raw`<!doctype html>
 				if (type === "select") return '<div class="field"><label for="' + name + '">' + label + '</label><select id="' + name + '" name="' + name + '">' + options.map((option) => '<option value="' + option + '"' + (value === option ? " selected" : "") + '>' + option + '</option>').join("") + '</select></div>';
 				return '<div class="field"><label for="' + name + '">' + label + '</label><input id="' + name + '" name="' + name + '" value="' + escapeHtml(value) + '" /></div>';
 			}).join("");
-			el("editor").innerHTML = '<div class="form-grid">' + fields + '</div><button type="submit">' + (state.editing ? "Salvar alteracoes" : "Criar") + '</button>';
+			const articleTools = state.current === "articles"
+				? '<div class="ai-tools"><strong>IA editorial</strong><div class="ai-actions"><button type="button" data-ai-article="title">Sugerir título</button><button type="button" data-ai-article="excerpt">Gerar resumo</button><button type="button" data-ai-article="improve">Melhorar texto</button><button type="button" data-ai-article="tags">Sugerir tags</button></div><div class="ai-suggestion" id="articleSuggestion"></div></div>'
+				: '';
+			el("editor").innerHTML = '<div class="form-grid">' + fields + articleTools + '</div><button type="submit">' + (state.editing ? "Salvar alteracoes" : "Criar") + '</button>';
+			document.querySelectorAll("[data-ai-article]").forEach((button) => {
+				button.addEventListener("click", () => runArticleAi(button.dataset.aiArticle));
+			});
 		}
 		function editRow(key) {
 			const resource = resources[state.current];
@@ -758,6 +800,45 @@ export const adminHtml = String.raw`<!doctype html>
 				if (payload[key] === state.editing[key]) delete payload[key];
 			}
 			return payload;
+		}
+		function articleDraft() {
+			return {
+				title: el("title")?.value || "",
+				excerpt: el("excerpt")?.value || "",
+				content: el("content")?.value || "",
+			};
+		}
+		async function runArticleAi(action) {
+			const output = el("articleSuggestion");
+			const button = document.querySelector('[data-ai-article="' + action + '"]');
+			try {
+				if (button) button.textContent = "Gerando...";
+				const result = await request("/ai/articles", {
+					method: "POST",
+					headers: headers(),
+					body: JSON.stringify({ action, ...articleDraft() })
+				});
+				const suggestion = result.suggestion || "";
+				if (action === "title" && el("title")) el("title").value = suggestion;
+				if (action === "excerpt" && el("excerpt")) el("excerpt").value = suggestion;
+				if (action === "improve" && el("content")) el("content").value = suggestion;
+				if (output) {
+					output.textContent = action === "tags" ? "Tags sugeridas: " + suggestion : suggestion;
+					output.classList.add("show");
+				}
+				toast("Sugestao aplicada");
+			} catch (error) {
+				if (output) {
+					output.textContent = error.message;
+					output.classList.add("show");
+				}
+				toast(error.message);
+			} finally {
+				if (button) {
+					const labels = { title: "Sugerir título", excerpt: "Gerar resumo", improve: "Melhorar texto", tags: "Sugerir tags" };
+					button.textContent = labels[action] || "Gerar";
+				}
+			}
 		}
 		async function submitForm(event) {
 			event.preventDefault();

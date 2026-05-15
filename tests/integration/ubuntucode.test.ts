@@ -258,4 +258,25 @@ describe("UbuntuCode API", () => {
 		expect(body.result.answer.length).toBeGreaterThan(0);
 		expect(["fallback", "workers-ai"]).toContain(body.result.provider);
 	});
+
+	it("generates article AI suggestions", async () => {
+		const response = await SELF.fetch("http://local.test/ai/articles", {
+			method: "POST",
+			headers: authHeaders,
+			body: JSON.stringify({
+				action: "excerpt",
+				title: "Como construir APIs com Workers",
+				content: "Texto sobre Cloudflare Workers, D1 e OpenAPI.",
+			}),
+		});
+		const body = await response.json<{
+			success: boolean;
+			result: { action: string; suggestion: string; provider: string };
+		}>();
+
+		expect(response.status).toBe(200);
+		expect(body.result.action).toBe("excerpt");
+		expect(body.result.suggestion.length).toBeGreaterThan(0);
+		expect(["fallback", "workers-ai"]).toContain(body.result.provider);
+	});
 });

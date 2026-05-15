@@ -8,7 +8,7 @@ import {
 	ArticleRead,
 	ArticleUpdate,
 } from "./endpoints/articles";
-import { AiAssist } from "./endpoints/ai";
+import { AiAssist, ArticleAiAssist } from "./endpoints/ai";
 import {
 	ProjectCreate,
 	ProjectDelete,
@@ -137,6 +137,7 @@ openapi.get("/webhooks/events", WebhookList);
 openapi.post("/webhooks/events", WebhookReceive);
 openapi.get("/webhooks/events/:id", WebhookRead);
 openapi.post("/ai/assist", AiAssist);
+openapi.post("/ai/articles", ArticleAiAssist);
 
 // Export the Hono app
 export default app;

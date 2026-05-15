@@ -32,6 +32,7 @@ Protected routes require the `x-api-key` header.
 - `GET /webhooks/events/:id`
 - `POST /webhooks/events`
 - `POST /ai/assist`
+- `POST /ai/articles`
 
 ## Admin Console
 
@@ -105,4 +106,6 @@ The API stores:
 - articles
 - webhook events
 
-The `POST /ai/assist` endpoint uses the Cloudflare Workers AI binding in production with `@cf/meta/llama-3.1-8b-instruct`. In local/test environments without an AI binding, it returns a fallback response so development stays fast and offline-friendly.
+The `POST /ai/assist` and `POST /ai/articles` endpoints use the Cloudflare Workers AI binding in production with `@cf/meta/llama-3.1-8b-instruct`. In local/test environments without an AI binding, they return fallback responses so development stays fast and offline-friendly.
+
+The admin article editor includes AI actions for title suggestions, summary generation, text improvement, and tag suggestions.

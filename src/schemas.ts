@@ -118,3 +118,10 @@ export const webhookCreateSchema = z.object({
 export const aiRequestSchema = z.object({
 	prompt: z.string().min(1).max(2000),
 });
+
+export const articleAiActionSchema = z.object({
+	action: z.enum(["title", "excerpt", "improve", "tags"]),
+	title: z.string().optional().default(""),
+	excerpt: z.string().optional().default(""),
+	content: z.string().optional().default(""),
+});
