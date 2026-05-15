@@ -108,6 +108,7 @@ describe("Public site", () => {
 		expect(html).toContain("Projetos");
 		expect(html).toContain("Artigos");
 		expect(html).toContain('href="/docs"');
+		expect(html).not.toContain('href="/admin"');
 		expect(html).toContain(
 			'<link rel="canonical" href="https://api.ubuntucode.com/"',
 		);

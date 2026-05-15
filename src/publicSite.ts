@@ -431,7 +431,6 @@ function layout(
 				<a href="/projetos">Projetos</a>
 				<a href="/blog">Artigos</a>
 				<a href="/contato">Contato</a>
-				<a href="/admin">Admin</a>
 				<a href="/docs">API</a>
 			</div>
 		</nav>
