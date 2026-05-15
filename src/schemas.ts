@@ -186,3 +186,20 @@ export const aiHistorySchema = z.object({
 	provider: z.string(),
 	created_at: z.string(),
 });
+
+export const aiDraftCreateSchema = z.object({
+	briefing: z.string().min(1).max(4000),
+	tone: z.string().optional().default("tecnico, claro e util"),
+});
+
+export const aiDraftSchema = z.object({
+	id: z.number().int(),
+	title: z.string(),
+	excerpt: z.string(),
+	content: z.string(),
+	tags: z.string().nullable(),
+	seo_title: z.string().nullable(),
+	seo_description: z.string().nullable(),
+	provider: z.string(),
+	created_at: z.string(),
+});

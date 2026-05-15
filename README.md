@@ -47,6 +47,9 @@ Protected routes require the `x-api-key` header.
 - `POST /webhooks/events`
 - `POST /ai/assist`
 - `POST /ai/articles`
+- `GET /ai/history`
+- `GET /ai/drafts`
+- `POST /ai/drafts`
 - `GET /leads`
 - `POST /assets/upload`
 
@@ -70,7 +73,9 @@ If `ADMIN_PASSWORD` is not configured, the panel falls back to:
 
 After login, the Worker sets a short-lived `HttpOnly` admin session cookie. The panel can call protected API routes without typing the key again.
 
-The admin can manage projects, articles, users, leads, webhooks, and AI workflows. Articles and projects support cover image URLs, tags, SEO title, and SEO description. Article AI tools can suggest titles, excerpts, improved text, tags, full drafts, SEO metadata, LinkedIn posts, and tone rewrites.
+The admin can manage projects, articles, users, leads, webhooks, and AI workflows. It starts on an operational dashboard with recent leads and AI usage. Articles and projects support cover image URLs, tags, SEO title, and SEO description. Article AI tools can suggest titles, excerpts, improved text, tags, full drafts, SEO metadata, LinkedIn posts, and tone rewrites.
+
+When `ADMIN_PASSWORD` is configured, the Worker bootstraps the first admin user as `admin@ubuntucode.com` with a PBKDF2 password hash in D1. The old password-only login remains as a fallback while no dedicated admin user is present.
 
 ## Local Setup
 
@@ -100,12 +105,29 @@ The Worker uses:
 
 - Worker name: `chanfana-openapi-template`
 - Custom domain: `api.ubuntucode.com`
+- Public site origin: `https://ubuntucode.com`
 - D1 database: `openapi-template-db`
 - D1 id: `c1648412-5ed9-48ff-bfbc-9b6bdc61ed5b`
 
 Optional asset uploads use an `ASSETS` R2 binding. Without that binding, the upload endpoint returns a clear `503` and the admin can still use external image URLs.
 
 Public lead/newsletter/webhook/AI traffic is rate limited through D1. CORS is restricted to UbuntuCode and local development origins.
+
+### Public domain and analytics
+
+The Worker config includes custom domains for:
+
+- `api.ubuntucode.com`
+- `ubuntucode.com`
+- `www.ubuntucode.com`
+
+Canonical URLs use the `PUBLIC_SITE_ORIGIN` variable. Production defaults to:
+
+```ini
+PUBLIC_SITE_ORIGIN=https://ubuntucode.com
+```
+
+To enable Cloudflare Web Analytics, set the token in `WEB_ANALYTICS_TOKEN`. When empty, the analytics script is not rendered.
 
 ### R2 assets
 

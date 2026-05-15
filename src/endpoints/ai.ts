@@ -4,6 +4,8 @@ import { requireApiKey } from "../auth";
 import { enforceRateLimit } from "../rateLimit";
 import {
 	aiHistorySchema,
+	aiDraftCreateSchema,
+	aiDraftSchema,
 	aiRequestSchema,
 	articleAiActionSchema,
 	errorResponse,
@@ -41,6 +43,18 @@ const articlePrompts = {
 	tone:
 		"Reescreva o conteudo no tom solicitado, mantendo as ideias principais e melhorando clareza.",
 };
+
+function parseJsonObject(value: string) {
+	const first = value.indexOf("{");
+	const last = value.lastIndexOf("}");
+	if (first === -1 || last === -1 || last <= first) return null;
+
+	try {
+		return JSON.parse(value.slice(first, last + 1)) as Record<string, unknown>;
+	} catch {
+		return null;
+	}
+}
 
 function articleContext(data: z.infer<typeof articleAiActionSchema>) {
 	return [
@@ -201,5 +215,94 @@ export class AiHistoryList extends OpenAPIRoute {
 			.all();
 
 		return c.json({ success: true, result: result.results });
+	}
+}
+
+export class AiDraftList extends OpenAPIRoute {
+	schema = {
+		tags: ["AI"],
+		summary: "List AI generated article drafts",
+		request: { query: listQuery },
+		responses: {
+			"200": {
+				description: "AI drafts",
+				...contentJson(successResponse(z.array(aiDraftSchema))),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const unauthorized = await requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const result = await c.env.DB.prepare(
+			"SELECT * FROM ai_drafts ORDER BY created_at DESC LIMIT ? OFFSET ?",
+		)
+			.bind(data.query.limit, data.query.offset)
+			.all();
+
+		return c.json({ success: true, result: result.results });
+	}
+}
+
+export class AiDraftCreate extends OpenAPIRoute {
+	schema = {
+		tags: ["AI"],
+		summary: "Generate and store an article draft from a briefing",
+		request: { body: contentJson(aiDraftCreateSchema) },
+		responses: {
+			"201": {
+				description: "AI draft",
+				...contentJson(successResponse(aiDraftSchema)),
+			},
+			"401": { description: "Unauthorized", ...contentJson(errorResponse) },
+		},
+	};
+
+	async handle(c: AppContext) {
+		const limited = await enforceRateLimit(c, {
+			name: "ai-drafts",
+			limit: 20,
+			windowSeconds: 60,
+		});
+		if (limited) return limited;
+
+		const unauthorized = await requireApiKey(c);
+		if (unauthorized) return unauthorized;
+
+		const data = await this.getValidatedData<typeof this.schema>();
+		const prompt = [
+			"Crie um rascunho de artigo para a UbuntuCode a partir do briefing.",
+			"Responda apenas em JSON com title, excerpt, content, tags, seo_title e seo_description.",
+			`Tom desejado: ${data.body.tone}`,
+			`Briefing: ${data.body.briefing}`,
+		].join("\n\n");
+		const result = await runAi(c, prompt);
+		await storeAiHistory(c, "draft", prompt, result.answer, result.provider);
+		const parsed = parseJsonObject(result.answer);
+		const title = String(parsed?.title ?? "Rascunho gerado por IA");
+		const excerpt = String(parsed?.excerpt ?? data.body.briefing.slice(0, 220));
+		const content = String(parsed?.content ?? result.answer);
+		const tags = Array.isArray(parsed?.tags)
+			? parsed.tags.join(", ")
+			: parsed?.tags
+				? String(parsed.tags)
+				: null;
+		const seoTitle = parsed?.seo_title ? String(parsed.seo_title) : title;
+		const seoDescription = parsed?.seo_description ? String(parsed.seo_description) : excerpt;
+		const insert = await c.env.DB.prepare(
+			`INSERT INTO ai_drafts
+				(title, excerpt, content, tags, seo_title, seo_description, provider)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		)
+			.bind(title, excerpt, content, tags, seoTitle, seoDescription, result.provider)
+			.run();
+		const draft = await c.env.DB.prepare("SELECT * FROM ai_drafts WHERE id = ?")
+			.bind(insert.meta.last_row_id)
+			.first();
+
+		return c.json({ success: true, result: draft }, 201);
 	}
 }

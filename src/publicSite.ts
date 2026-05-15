@@ -41,7 +41,7 @@ type SeoOptions = {
 	image?: string | null;
 };
 
-const SITE_ORIGIN = "https://api.ubuntucode.com";
+const DEFAULT_SITE_ORIGIN = "https://api.ubuntucode.com";
 const DEFAULT_DESCRIPTION =
 	"Projetos, artigos e experimentos da UbuntuCode sobre APIs, Cloudflare Workers, automacao e IA aplicada.";
 
@@ -59,10 +59,14 @@ function escapeHtml(value: unknown) {
 	});
 }
 
-function absoluteUrl(path = "/") {
+function siteOrigin(c: Context<{ Bindings: AppEnv }>) {
+	return c.env.PUBLIC_SITE_ORIGIN ?? DEFAULT_SITE_ORIGIN;
+}
+
+function absoluteUrl(c: Context<{ Bindings: AppEnv }>, path = "/") {
 	if (/^https?:\/\//.test(path)) return path;
 
-	return `${SITE_ORIGIN}${path.startsWith("/") ? path : `/${path}`}`;
+	return `${siteOrigin(c)}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function compactText(value: string, fallback = DEFAULT_DESCRIPTION) {
@@ -111,12 +115,18 @@ function paragraphs(markdownish: string) {
 		.join("");
 }
 
-function layout(title: string, body: string, options: SeoOptions = {}) {
+function layout(
+	c: Context<{ Bindings: AppEnv }>,
+	title: string,
+	body: string,
+	options: SeoOptions = {},
+) {
 	const pageTitle = title === "UbuntuCode" ? title : `${title} - UbuntuCode`;
 	const description = compactText(options.description ?? DEFAULT_DESCRIPTION);
-	const canonical = absoluteUrl(options.path ?? "/");
+	const canonical = absoluteUrl(c, options.path ?? "/");
 	const type = options.type ?? "website";
-	const image = options.image ? absoluteUrl(options.image) : null;
+	const image = options.image ? absoluteUrl(c, options.image) : null;
+	const analyticsToken = c.env.WEB_ANALYTICS_TOKEN?.trim();
 
 	return `<!doctype html>
 <html lang="pt-BR">
@@ -428,6 +438,7 @@ function layout(title: string, body: string, options: SeoOptions = {}) {
 	</header>
 	${body}
 	<footer class="footer">UbuntuCode - API, automacao e produtos digitais.</footer>
+	${analyticsToken ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${escapeHtml(analyticsToken)}"}'></script>` : ""}
 </body>
 </html>`;
 }
@@ -503,7 +514,7 @@ export async function renderHome(c: Context<{ Bindings: AppEnv }>) {
 	</main>`;
 
 	return c.html(
-		layout("UbuntuCode", body, {
+		layout(c, "UbuntuCode", body, {
 			description: DEFAULT_DESCRIPTION,
 			path: "/",
 		}),
@@ -518,7 +529,7 @@ export async function renderProjects(c: Context<{ Bindings: AppEnv }>) {
 	</main>`;
 
 	return c.html(
-		layout("Projetos", body, {
+		layout(c, "Projetos", body, {
 			description: "Projetos ativos da UbuntuCode com APIs, automacoes, demos e repositorios.",
 			path: "/projetos",
 		}),
@@ -558,7 +569,7 @@ export async function renderProject(c: Context<{ Bindings: AppEnv }>) {
 	</main>`;
 
 	return c.html(
-		layout(project.seo_title || project.title, body, {
+		layout(c, project.seo_title || project.title, body, {
 			description: project.seo_description || project.summary,
 			path: `/projetos/${project.slug}`,
 			image: project.image_url,
@@ -574,7 +585,7 @@ export async function renderArticles(c: Context<{ Bindings: AppEnv }>) {
 	</main>`;
 
 	return c.html(
-		layout("Artigos", body, {
+		layout(c, "Artigos", body, {
 			description: "Artigos da UbuntuCode sobre APIs, Cloudflare Workers, IA aplicada e construcao de produtos digitais.",
 			path: "/blog",
 		}),
@@ -612,7 +623,7 @@ export async function renderArticle(c: Context<{ Bindings: AppEnv }>) {
 	</main>`;
 
 	return c.html(
-		layout(article.seo_title || article.title, body, {
+		layout(c, article.seo_title || article.title, body, {
 			description: article.seo_description || article.excerpt,
 			path: `/blog/${article.slug}`,
 			type: "article",
@@ -638,7 +649,7 @@ export async function renderContact(c: Context<{ Bindings: AppEnv }>) {
 	</main>`;
 
 	return c.html(
-		layout("Contato", body, {
+		layout(c, "Contato", body, {
 			description: "Entre em contato com a UbuntuCode para projetos de API, automacao, Workers e IA aplicada.",
 			path: "/contato",
 		}),
@@ -652,13 +663,13 @@ export async function renderSitemap(c: Context<{ Bindings: AppEnv }>) {
 	]);
 	const staticUrls = ["/", "/projetos", "/blog", "/contato", "/docs"];
 	const urls = [
-		...staticUrls.map((path) => ({ loc: absoluteUrl(path), lastmod: null })),
+		...staticUrls.map((path) => ({ loc: absoluteUrl(c, path), lastmod: null })),
 		...projects.map((project) => ({
-			loc: absoluteUrl(`/projetos/${project.slug}`),
+			loc: absoluteUrl(c, `/projetos/${project.slug}`),
 			lastmod: project.updated_at,
 		})),
 		...articles.map((article) => ({
-			loc: absoluteUrl(`/blog/${article.slug}`),
+			loc: absoluteUrl(c, `/blog/${article.slug}`),
 			lastmod: article.published_at || article.updated_at,
 		})),
 	];
@@ -683,7 +694,7 @@ export function renderRobots(c: Context<{ Bindings: AppEnv }>) {
 			"User-agent: *",
 			"Allow: /",
 			"Disallow: /admin",
-			`Sitemap: ${absoluteUrl("/sitemap.xml")}`,
+			`Sitemap: ${absoluteUrl(c, "/sitemap.xml")}`,
 			"",
 		].join("\n"),
 	);
@@ -695,14 +706,14 @@ export async function renderRss(c: Context<{ Bindings: AppEnv }>) {
 <rss version="2.0">
 	<channel>
 		<title>UbuntuCode</title>
-		<link>${xmlEscape(absoluteUrl("/blog"))}</link>
+		<link>${xmlEscape(absoluteUrl(c, "/blog"))}</link>
 		<description>${xmlEscape(DEFAULT_DESCRIPTION)}</description>
 ${articles
 	.map(
 		(article) => `		<item>
 			<title>${xmlEscape(article.title)}</title>
-			<link>${xmlEscape(absoluteUrl(`/blog/${article.slug}`))}</link>
-			<guid>${xmlEscape(absoluteUrl(`/blog/${article.slug}`))}</guid>
+			<link>${xmlEscape(absoluteUrl(c, `/blog/${article.slug}`))}</link>
+			<guid>${xmlEscape(absoluteUrl(c, `/blog/${article.slug}`))}</guid>
 			<description>${xmlEscape(article.excerpt)}</description>
 			<pubDate>${new Date(article.published_at || article.created_at).toUTCString()}</pubDate>
 		</item>`,

@@ -10,7 +10,9 @@
 		"head_sampling_rate": 1
 	},
 	"vars": {
-		"ENVIRONMENT": "production"
+		"ENVIRONMENT": "production",
+		"PUBLIC_SITE_ORIGIN": "https://ubuntucode.com",
+		"WEB_ANALYTICS_TOKEN": ""
 	},
 	"ai": {
 		"binding": "AI"
@@ -24,6 +26,14 @@
 	"routes": [
 		{
 			"pattern": "api.ubuntucode.com",
+			"custom_domain": true
+		},
+		{
+			"pattern": "ubuntucode.com",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.ubuntucode.com",
 			"custom_domain": true
 		}
 	],

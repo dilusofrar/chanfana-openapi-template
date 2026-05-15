@@ -76,9 +76,36 @@ function adminSecret(c: Context<{ Bindings: AppEnv }>) {
 	return c.env.ADMIN_PASSWORD ?? c.env.API_KEY;
 }
 
-export async function createAdminSession(secret: string) {
+export async function hashPassword(password: string, salt?: string) {
+	const passwordSalt = salt ?? base64UrlEncode(crypto.getRandomValues(new Uint8Array(16)));
+	const keyMaterial = await crypto.subtle.importKey(
+		"raw",
+		new TextEncoder().encode(password),
+		"PBKDF2",
+		false,
+		["deriveBits"],
+	);
+	const bits = await crypto.subtle.deriveBits(
+		{
+			name: "PBKDF2",
+			hash: "SHA-256",
+			salt: new TextEncoder().encode(passwordSalt),
+			iterations: 100000,
+		},
+		keyMaterial,
+		256,
+	);
+
+	return {
+		hash: base64UrlEncode(bits),
+		salt: passwordSalt,
+	};
+}
+
+export async function createAdminSession(secret: string, email = "admin") {
 	const expiresAt = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
-	const payload = `admin.${expiresAt}`;
+	const subject = base64UrlEncode(new TextEncoder().encode(email));
+	const payload = `${subject}.${expiresAt}`;
 	const signature = await sign(payload, secret);
 
 	return `${payload}.${signature}`;
@@ -93,7 +120,7 @@ export async function hasValidAdminSession(c: Context<{ Bindings: AppEnv }>) {
 
 	const [username, expiresAtValue, signature] = cookie.split(".");
 	const expiresAt = Number(expiresAtValue);
-	if (username !== "admin" || !Number.isFinite(expiresAt)) return false;
+	if (!username || !Number.isFinite(expiresAt)) return false;
 	if (expiresAt < Math.floor(Date.now() / 1000)) return false;
 
 	const expected = await sign(`${username}.${expiresAt}`, configuredKey);
@@ -125,6 +152,51 @@ export function verifyAdminPassword(
 	const configuredKey = c.env.ADMIN_PASSWORD ?? c.env.API_KEY;
 
 	return Boolean(configuredKey && password === configuredKey);
+}
+
+export async function verifyAdminCredentials(
+	c: Context<{ Bindings: AppEnv }>,
+	email: string,
+	password: string,
+) {
+	const normalizedEmail = email.trim().toLowerCase();
+	const admin = await c.env.DB.prepare(
+		"SELECT email, password_hash, password_salt FROM admin_users WHERE email = ?",
+	)
+		.bind(normalizedEmail)
+		.first<{ email: string; password_hash: string; password_salt: string }>();
+
+	if (admin) {
+		const candidate = await hashPassword(password, admin.password_salt);
+
+		return timingSafeEqual(candidate.hash, admin.password_hash)
+			? { email: admin.email }
+			: null;
+	}
+
+	if (!normalizedEmail || normalizedEmail === "admin@ubuntucode.com") {
+		return verifyAdminPassword(c, password) ? { email: "admin@ubuntucode.com" } : null;
+	}
+
+	return null;
+}
+
+export async function bootstrapAdminUser(c: Context<{ Bindings: AppEnv }>) {
+	const password = c.env.ADMIN_PASSWORD;
+	if (!password) return;
+
+	const existing = await c.env.DB.prepare("SELECT id FROM admin_users LIMIT 1").first();
+	if (existing) return;
+
+	const email = "admin@ubuntucode.com";
+	const credentials = await hashPassword(password);
+	await c.env.DB.prepare(
+		`INSERT INTO admin_users
+			(email, name, password_hash, password_salt, role)
+		 VALUES (?, ?, ?, ?, 'admin')`,
+	)
+		.bind(email, "UbuntuCode Admin", credentials.hash, credentials.salt)
+		.run();
 }
 
 export async function requireAdmin(c: Context<{ Bindings: AppEnv }>) {

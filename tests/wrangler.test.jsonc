@@ -4,7 +4,9 @@
 	"main": "../src/index.ts",
 	"name": "chanfana-openapi-template-test",
 	"vars": {
-		"ENVIRONMENT": "test"
+		"ENVIRONMENT": "test",
+		"PUBLIC_SITE_ORIGIN": "https://api.ubuntucode.com",
+		"WEB_ANALYTICS_TOKEN": "test-token"
 	},
 	"d1_databases": [
 		{

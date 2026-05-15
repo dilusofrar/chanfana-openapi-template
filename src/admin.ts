@@ -113,11 +113,15 @@ export const adminLoginHtml = String.raw`<!doctype html>
 		<form method="post" action="/admin/login">
 			<div class="error" id="error">Senha inválida.</div>
 			<label>
-				Senha de administrador
+				Email
+				<input name="email" type="email" autocomplete="username" placeholder="admin@ubuntucode.com" />
+			</label>
+			<label>
+				Senha
 				<input name="password" type="password" autocomplete="current-password" autofocus required />
 			</label>
 			<button type="submit">Entrar</button>
-			<div class="note">Use a mesma API_KEY configurada no Worker. Depois do login, a sessão fica ativa por 8 horas neste navegador.</div>
+			<div class="note">Use seu usuário admin. Enquanto nenhum usuário estiver criado, o acesso continua aceitando a senha ADMIN_PASSWORD/API_KEY.</div>
 		</form>
 	</section>
 	<script>
@@ -626,15 +630,22 @@ export const adminHtml = String.raw`<!doctype html>
 	<div class="toast" id="toast"></div>
 	<script>
 		const icons = {
+			dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
 			projects: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M6 7V5h12v2"/><rect x="4" y="7" width="16" height="13" rx="2"/></svg>',
 			articles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>',
 			users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
 			leads: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>',
 			webhooks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16.98A6 6 0 0 0 12 7h-1"/><path d="M8 7H5"/><path d="m8 4-3 3 3 3"/><path d="M6 17a6 6 0 0 0 6-10"/><path d="M16 17h3"/><path d="m16 20 3-3-3-3"/></svg>',
 			history: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 5 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>',
+			drafts: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
 			ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>'
 		};
 		const resources = {
+			dashboard: {
+				title: "Dashboard",
+				subtitle: "Visão operacional do UbuntuCode.",
+				dashboard: true
+			},
 			projects: {
 				title: "Projetos",
 				subtitle: "Gerencie produtos, repositórios e URLs públicas.",
@@ -688,6 +699,16 @@ export const adminHtml = String.raw`<!doctype html>
 				authList: true,
 				columns: ["id", "kind", "provider", "created_at"]
 			},
+			drafts: {
+				title: "Rascunhos IA",
+				subtitle: "Gere e aprove rascunhos antes de publicar.",
+				path: "/ai/drafts",
+				id: "id",
+				readOnly: true,
+				authList: true,
+				columns: ["id", "title", "provider", "created_at"],
+				drafts: true
+			},
 			webhooks: {
 				title: "Webhooks",
 				subtitle: "Audite eventos recebidos pela API.",
@@ -704,7 +725,7 @@ export const adminHtml = String.raw`<!doctype html>
 				ai: true
 			}
 		};
-		const state = { current: "projects", rows: [], editing: null, metrics: {}, aiMessages: [] };
+		const state = { current: "dashboard", rows: [], editing: null, metrics: {}, aiMessages: [], dashboard: {} };
 		const el = (id) => document.getElementById(id);
 		function toast(message) {
 			const node = el("toast");
@@ -744,7 +765,8 @@ export const adminHtml = String.raw`<!doctype html>
 				["Projetos", state.metrics.projects ?? "–"],
 				["Artigos", state.metrics.articles ?? "–"],
 				["Usuários", state.metrics.users ?? "–"],
-				["Leads", state.metrics.leads ?? "–"]
+				["Leads", state.metrics.leads ?? "–"],
+				["Rascunhos", state.metrics.drafts ?? "–"]
 			];
 			el("metrics").innerHTML = cards.map(([label, value]) =>
 				'<div class="metric"><span>' + label + '</span><strong>' + value + '</strong></div>'
@@ -756,6 +778,16 @@ export const adminHtml = String.raw`<!doctype html>
 			})[char]);
 		}
 		function renderTable(resource) {
+			if (resource.dashboard) {
+				const recentLeads = state.dashboard.leads || [];
+				const recentHistory = state.dashboard.history || [];
+				el("table").innerHTML = '<div class="detail"><strong>Leads recentes</strong>' +
+					(recentLeads.length ? recentLeads.map((lead) => '<div>' + escapeHtml(lead.name) + ' · ' + escapeHtml(lead.email) + '<br>' + escapeHtml(lead.message) + '</div>').join("") : '<div>Nenhum lead recente.</div>') +
+					'<strong>IA recente</strong>' +
+					(recentHistory.length ? recentHistory.map((item) => '<div>' + escapeHtml(item.kind) + ' · ' + escapeHtml(item.provider) + '<br>' + escapeHtml(item.response).slice(0, 160) + '</div>').join("") : '<div>Nenhum uso recente de IA.</div>') +
+					'</div>';
+				return;
+			}
 			if (resource.ai) {
 				el("table").innerHTML = '<div class="empty">A conversa acontece no painel ao lado.</div>';
 				return;
@@ -788,9 +820,23 @@ export const adminHtml = String.raw`<!doctype html>
 			document.querySelectorAll("[data-detail]").forEach((button) => button.addEventListener("click", () => showDetail(button.dataset.detail)));
 		}
 		function renderForm(resource) {
+			if (resource.dashboard) {
+				el("formTitle").textContent = "Ações rápidas";
+				el("editor").innerHTML = '<div class="detail"><button type="button" data-jump="articles">Novo artigo</button><button type="button" data-jump="drafts">Gerar rascunho IA</button><button type="button" data-jump="leads">Ver leads</button><button type="button" data-jump="history">Histórico de IA</button></div>';
+				document.querySelectorAll("[data-jump]").forEach((button) => button.addEventListener("click", () => {
+					state.current = button.dataset.jump;
+					state.editing = null;
+					load();
+				}));
+				return;
+			}
 			if (resource.readOnly) {
-				el("formTitle").textContent = "Detalhes";
-				el("editor").innerHTML = '<div class="empty">Selecione um registro para ver os detalhes.</div>';
+				el("formTitle").textContent = resource.drafts ? "Gerar rascunho" : "Detalhes";
+				el("editor").innerHTML = resource.drafts
+					? '<div class="field"><label for="draftBriefing">Briefing</label><textarea id="draftBriefing" placeholder="Descreva o artigo, público, objetivo e pontos principais"></textarea></div><div class="field"><label for="draftTone">Tom</label><input id="draftTone" value="tecnico, claro e util" /></div><button type="button" id="generateDraft">Gerar rascunho</button><div class="detail" id="draftPreview">Os rascunhos gerados aparecem na lista.</div>'
+					: '<div class="empty">Selecione um registro para ver os detalhes.</div>';
+				const draftButton = el("generateDraft");
+				if (draftButton) draftButton.addEventListener("click", generateDraft);
 				return;
 			}
 			if (resource.ai) {
@@ -828,6 +874,44 @@ export const adminHtml = String.raw`<!doctype html>
 			});
 			const uploadButton = el("uploadAsset");
 			if (uploadButton) uploadButton.addEventListener("click", uploadAsset);
+		}
+		async function generateDraft() {
+			const briefing = String(el("draftBriefing")?.value || "").trim();
+			const tone = String(el("draftTone")?.value || "tecnico, claro e util").trim();
+			if (!briefing) {
+				toast("Preencha o briefing");
+				return;
+			}
+			try {
+				el("generateDraft").textContent = "Gerando...";
+				const draft = await request("/ai/drafts", {
+					method: "POST",
+					headers: headers(),
+					body: JSON.stringify({ briefing, tone })
+				});
+				el("draftPreview").innerHTML = '<strong>' + escapeHtml(draft.title) + '</strong><div>' + escapeHtml(draft.excerpt) + '</div><button type="button" id="useDraft">Usar em novo artigo</button>';
+				el("useDraft").addEventListener("click", () => {
+					state.current = "articles";
+					state.editing = {
+						slug: draft.title.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 72),
+						title: draft.title,
+						excerpt: draft.excerpt,
+						content: draft.content,
+						status: "draft",
+						tags: draft.tags,
+						seo_title: draft.seo_title,
+						seo_description: draft.seo_description,
+					};
+					load();
+				});
+				toast("Rascunho gerado");
+				await loadRows(resources.drafts);
+				renderTable(resources.drafts);
+			} catch (error) {
+				toast(error.message);
+			} finally {
+				if (el("generateDraft")) el("generateDraft").textContent = "Gerar rascunho";
+			}
 		}
 		function showDetail(key) {
 			const resource = resources[state.current];
@@ -1001,7 +1085,7 @@ export const adminHtml = String.raw`<!doctype html>
 			box.scrollTop = box.scrollHeight;
 		}
 		async function loadMetrics() {
-			const names = ["projects", "articles", "users", "leads"];
+			const names = ["projects", "articles", "users", "leads", "drafts"];
 			await Promise.all(names.map(async (name) => {
 				try {
 					state.metrics[name] = (await request(resources[name].path)).length;
@@ -1012,6 +1096,26 @@ export const adminHtml = String.raw`<!doctype html>
 			state.metrics.webhooks = "●";
 			renderMetrics();
 		}
+		async function loadRows(resource) {
+			if (!resource.path) {
+				state.rows = [];
+				return [];
+			}
+			try {
+				state.rows = await request(resource.path, { headers: resource.authList ? headers(false) : {} });
+			} catch (error) {
+				state.rows = [];
+				toast(error.message);
+			}
+			return state.rows;
+		}
+		async function loadDashboard() {
+			const [leads, history] = await Promise.all([
+				request("/leads?limit=5", { headers: headers(false) }).catch(() => []),
+				request("/ai/history?limit=5", { headers: headers(false) }).catch(() => []),
+			]);
+			state.dashboard = { leads, history };
+		}
 		async function load() {
 			const resource = resources[state.current];
 			renderNav();
@@ -1020,13 +1124,10 @@ export const adminHtml = String.raw`<!doctype html>
 			el("listTitle").textContent = resource.title;
 			el("clearForm").textContent = resource.ai ? "Nova conversa" : "Limpar";
 			renderForm(resource);
-			if (!resource.ai) {
-				try {
-					state.rows = await request(resource.path, { headers: resource.authList ? headers(false) : {} });
-				} catch (error) {
-					state.rows = [];
-					toast(error.message);
-				}
+			if (resource.dashboard) {
+				await loadDashboard();
+			} else if (!resource.ai) {
+				await loadRows(resource);
 			}
 			renderTable(resource);
 			loadMetrics();

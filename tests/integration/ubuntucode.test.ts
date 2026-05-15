@@ -299,6 +299,34 @@ describe("UbuntuCode API", () => {
 		expect(["fallback", "workers-ai"]).toContain(body.result.provider);
 	});
 
+	it("generates and stores AI article drafts", async () => {
+		const response = await SELF.fetch("http://local.test/ai/drafts", {
+			method: "POST",
+			headers: authHeaders,
+			body: JSON.stringify({
+				briefing: "Artigo sobre usar Cloudflare Workers, D1 e Workers AI.",
+				tone: "pratico e didatico",
+			}),
+		});
+		const body = await response.json<{
+			result: { id: number; title: string; content: string };
+		}>();
+
+		expect(response.status).toBe(201);
+		expect(body.result.id).toBeGreaterThan(0);
+		expect(body.result.title.length).toBeGreaterThan(0);
+
+		const listResponse = await SELF.fetch("http://local.test/ai/drafts", {
+			headers: { "x-api-key": "test-api-key" },
+		});
+		const list = await listResponse.json<{
+			result: Array<{ id: number }>;
+		}>();
+
+		expect(listResponse.status).toBe(200);
+		expect(list.result.some((draft) => draft.id === body.result.id)).toBe(true);
+	});
+
 	it("accepts contact leads and newsletter subscribers", async () => {
 		const email = `lead-${crypto.randomUUID()}@ubuntucode.com`;
 		const leadResponse = await SELF.fetch("http://local.test/leads", {

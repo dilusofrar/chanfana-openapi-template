@@ -36,7 +36,8 @@ describe("Admin panel", () => {
 
 		expect(response.status).toBe(200);
 		expect(html).toContain("Entrar - UbuntuCode Admin");
-		expect(html).toContain("Senha de administrador");
+		expect(html).toContain("Email");
+		expect(html).toContain("Senha");
 	});
 
 	it("serves the admin console with valid basic credentials", async () => {
@@ -52,6 +53,7 @@ describe("Admin panel", () => {
 		expect(response.headers.get("content-type")).toContain("text/html");
 		expect(html).toContain("UbuntuCode Admin");
 		expect(html).toContain("Admin Console");
+		expect(html).toContain("Dashboard");
 		expect(html).toContain("Histórico de IA");
 		expect(html).toContain("Upload");
 		expect(response.headers.get("set-cookie")).toContain("uc_admin_session");
@@ -106,6 +108,7 @@ describe("Public site", () => {
 		expect(html).toContain(
 			'<link rel="canonical" href="https://api.ubuntucode.com/"',
 		);
+		expect(html).toContain("static.cloudflareinsights.com/beacon.min.js");
 		expect(html).toContain("APIs serverless");
 		expect(html).toContain("IA aplicada");
 	});

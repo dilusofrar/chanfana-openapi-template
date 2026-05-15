@@ -8,7 +8,13 @@ import {
 	ArticleRead,
 	ArticleUpdate,
 } from "./endpoints/articles";
-import { AiAssist, AiHistoryList, ArticleAiAssist } from "./endpoints/ai";
+import {
+	AiAssist,
+	AiDraftCreate,
+	AiDraftList,
+	AiHistoryList,
+	ArticleAiAssist,
+} from "./endpoints/ai";
 import { AssetUpload } from "./endpoints/assets";
 import { LeadCreate, LeadList, NewsletterSubscribe } from "./endpoints/leads";
 import {
@@ -32,11 +38,12 @@ import { nowIso } from "./db";
 import { enforceRateLimit } from "./rateLimit";
 import {
 	clearAdminSessionCookie,
+	bootstrapAdminUser,
 	createAdminSession,
 	hasValidAdminSession,
 	requireAdmin,
 	setAdminSessionCookie,
-	verifyAdminPassword,
+	verifyAdminCredentials,
 } from "./adminAuth";
 import {
 	renderArticle,
@@ -64,6 +71,7 @@ app.use("*", async (c, next) => {
 		"http://localhost:8787",
 		"http://127.0.0.1:8787",
 	]);
+	if (c.env.PUBLIC_SITE_ORIGIN) allowedOrigins.add(c.env.PUBLIC_SITE_ORIGIN);
 	if (origin && allowedOrigins.has(origin)) {
 		c.header("Access-Control-Allow-Origin", origin);
 		c.header("Vary", "Origin");
@@ -99,16 +107,18 @@ app.get("/health", (c) =>
 );
 
 app.get("/admin", async (c) => {
+	await bootstrapAdminUser(c);
 	const unauthorized = await requireAdmin(c);
 	if (unauthorized) return unauthorized;
 
-	const session = await createAdminSession(c.env.ADMIN_PASSWORD ?? c.env.API_KEY ?? "");
+	const session = await createAdminSession(c.env.ADMIN_PASSWORD ?? c.env.API_KEY ?? "", "admin@ubuntucode.com");
 	setAdminSessionCookie(c, session);
 
 	return c.html(adminHtml);
 });
 
 app.get("/admin/login", async (c) => {
+	await bootstrapAdminUser(c);
 	if (await hasValidAdminSession(c)) return c.redirect("/admin", 302);
 
 	return c.html(adminLoginHtml);
@@ -116,13 +126,15 @@ app.get("/admin/login", async (c) => {
 
 app.post("/admin/login", async (c) => {
 	const form = await c.req.raw.formData();
+	const email = String(form.get("email") ?? "admin@ubuntucode.com");
 	const password = String(form.get("password") ?? "");
 
-	if (!verifyAdminPassword(c, password)) {
+	const admin = await verifyAdminCredentials(c, email, password);
+	if (!admin) {
 		return c.redirect("/admin/login?error=1", 302);
 	}
 
-	const session = await createAdminSession(c.env.ADMIN_PASSWORD ?? c.env.API_KEY ?? "");
+	const session = await createAdminSession(c.env.ADMIN_PASSWORD ?? c.env.API_KEY ?? "", admin.email);
 	setAdminSessionCookie(c, session);
 
 	return c.redirect("/admin", 302);
@@ -240,6 +252,8 @@ openapi.get("/webhooks/events/:id", WebhookRead);
 openapi.post("/ai/assist", AiAssist);
 openapi.post("/ai/articles", ArticleAiAssist);
 openapi.get("/ai/history", AiHistoryList);
+openapi.get("/ai/drafts", AiDraftList);
+openapi.post("/ai/drafts", AiDraftCreate);
 openapi.get("/leads", LeadList);
 openapi.post("/leads", LeadCreate);
 openapi.post("/newsletter", NewsletterSubscribe);

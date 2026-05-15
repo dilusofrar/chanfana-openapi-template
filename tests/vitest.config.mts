@@ -17,6 +17,8 @@ export default defineConfig({
 					MIGRATIONS: migrations,
 					API_KEY: "test-api-key",
 					ENVIRONMENT: "test",
+					PUBLIC_SITE_ORIGIN: "https://api.ubuntucode.com",
+					WEB_ANALYTICS_TOKEN: "test-token",
 				},
 			},
 		}),
