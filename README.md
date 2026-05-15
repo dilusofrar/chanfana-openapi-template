@@ -73,7 +73,7 @@ If `ADMIN_PASSWORD` is not configured, the panel falls back to:
 
 After login, the Worker sets a short-lived `HttpOnly` admin session cookie. The panel can call protected API routes without typing the key again.
 
-The admin can manage projects, articles, users, leads, webhooks, and AI workflows. It starts on an operational dashboard with recent leads and AI usage. Articles and projects support cover image URLs, tags, SEO title, and SEO description. Article AI tools can suggest titles, excerpts, improved text, tags, full drafts, SEO metadata, LinkedIn posts, and tone rewrites.
+The admin can manage projects, articles, members, admin users, leads, webhooks, and AI workflows. It starts on an operational dashboard with recent leads and AI usage. Articles and projects support cover image URLs, tags, SEO title, and SEO description. Article AI tools can suggest titles, excerpts, improved text, tags, full drafts, SEO metadata, LinkedIn posts, and tone rewrites.
 
 When `ADMIN_PASSWORD` is configured, the Worker bootstraps the first admin user as `admin@ubuntucode.com` with a PBKDF2 password hash in D1. The old password-only login remains as a fallback while no dedicated admin user is present.
 
@@ -163,10 +163,21 @@ npm run check
 
 The API stores:
 
-- users
+- members (`users` table/API)
 - projects
 - articles
 - webhook events
+
+## Webhooks
+
+Webhooks are a technical inbox for events sent by other services. They are useful when another system needs to notify UbuntuCode automatically, for example:
+
+- GitHub sends a `push` event after a repository update.
+- Stripe or Mercado Pago sends a payment event.
+- A no-code form tool sends a new lead.
+- Another automation sends a deploy, backup, or job completion event.
+
+For now, webhooks are stored in `webhook_events` for audit/history. Later they can trigger actions, such as creating leads, notifying Slack/email, starting AI summaries, or updating project status.
 
 The `POST /ai/assist` and `POST /ai/articles` endpoints use the Cloudflare Workers AI binding in production with `@cf/meta/llama-3.1-8b-instruct`. In local/test environments without an AI binding, they return fallback responses so development stays fast and offline-friendly.
 

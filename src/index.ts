@@ -232,7 +232,7 @@ const openapi = fromHono(app, {
 			title: "UbuntuCode API",
 			version: "2.0.0",
 			description:
-				"Backend API for UbuntuCode projects, articles, webhooks, users, and AI workflows.",
+				"Backend API for UbuntuCode projects, articles, webhooks, members, admin users, and AI workflows.",
 		},
 	},
 });

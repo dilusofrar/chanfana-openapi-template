@@ -675,8 +675,8 @@ export const adminHtml = String.raw`<!doctype html>
 				]
 			},
 			users: {
-				title: "Usuários",
-				subtitle: "Controle autores, operadores e administradores.",
+				title: "Membros",
+				subtitle: "Cadastro de pessoas do produto: autores, clientes, colaboradores e contatos internos.",
 				path: "/users",
 				id: "id",
 				columns: ["id", "email", "name", "role"],
@@ -720,7 +720,7 @@ export const adminHtml = String.raw`<!doctype html>
 			},
 			webhooks: {
 				title: "Webhooks",
-				subtitle: "Audite eventos recebidos pela API.",
+				subtitle: "Caixa de entrada técnica para eventos automáticos de outros serviços.",
 				path: "/webhooks/events",
 				id: "id",
 				readOnly: true,
@@ -773,7 +773,7 @@ export const adminHtml = String.raw`<!doctype html>
 			const cards = [
 				["Projetos", state.metrics.projects ?? "–"],
 				["Artigos", state.metrics.articles ?? "–"],
-				["Usuários", state.metrics.users ?? "–"],
+				["Membros", state.metrics.users ?? "–"],
 				["Leads", state.metrics.leads ?? "–"],
 				["Rascunhos", state.metrics.drafts ?? "–"]
 			];
@@ -841,9 +841,12 @@ export const adminHtml = String.raw`<!doctype html>
 			}
 			if (resource.readOnly) {
 				el("formTitle").textContent = resource.drafts ? "Gerar rascunho" : "Detalhes";
+				const emptyText = state.current === "webhooks"
+					? "Webhooks são eventos enviados por outros serviços para esta API. Exemplo: GitHub avisando push, Stripe avisando pagamento, formulário externo avisando novo lead ou automação avisando uma tarefa concluída. Quando você conectar algum serviço, os eventos recebidos aparecem aqui para auditoria."
+					: "Selecione um registro para ver os detalhes.";
 				el("editor").innerHTML = resource.drafts
 					? '<div class="field"><label for="draftBriefing">Briefing</label><textarea id="draftBriefing" placeholder="Descreva o artigo, público, objetivo e pontos principais"></textarea></div><div class="field"><label for="draftTone">Tom</label><input id="draftTone" value="tecnico, claro e util" /></div><button type="button" id="generateDraft">Gerar rascunho</button><div class="detail" id="draftPreview">Os rascunhos gerados aparecem na lista.</div>'
-					: '<div class="empty">Selecione um registro para ver os detalhes.</div>';
+					: '<div class="empty">' + emptyText + '</div>';
 				const draftButton = el("generateDraft");
 				if (draftButton) draftButton.addEventListener("click", generateDraft);
 				return;
