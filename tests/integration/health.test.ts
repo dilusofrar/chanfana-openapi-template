@@ -40,11 +40,18 @@ describe("Admin panel", () => {
 		expect(html).toContain("Senha");
 	});
 
-	it("serves the admin console with valid basic credentials", async () => {
-		const credentials = btoa("admin:test-api-key");
+	it("serves the admin console with a valid login session", async () => {
+		const form = new FormData();
+		form.set("password", "test-api-key");
+		const loginResponse = await SELF.fetch("http://local.test/admin/login", {
+			method: "POST",
+			body: form,
+			redirect: "manual",
+		});
+		const cookie = loginResponse.headers.get("set-cookie")?.split(";")[0];
 		const response = await SELF.fetch("http://local.test/admin", {
 			headers: {
-				Authorization: `Basic ${credentials}`,
+				Cookie: cookie ?? "",
 			},
 		});
 		const html = await response.text();
@@ -59,7 +66,6 @@ describe("Admin panel", () => {
 		expect(html).toContain("Caixa de entrada técnica");
 		expect(html).toContain("Histórico de IA");
 		expect(html).toContain("Upload");
-		expect(response.headers.get("set-cookie")).toContain("uc_admin_session");
 	});
 
 	it("creates an admin session through the login form", async () => {

@@ -117,9 +117,6 @@ app.get("/admin", async (c) => {
 	const unauthorized = await requireAdmin(c);
 	if (unauthorized) return unauthorized;
 
-	const session = await createAdminSession(c.env.ADMIN_PASSWORD ?? c.env.API_KEY ?? "", "admin@ubuntucode.com");
-	setAdminSessionCookie(c, session);
-
 	return c.html(adminHtml);
 });
 

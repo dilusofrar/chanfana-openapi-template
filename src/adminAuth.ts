@@ -4,24 +4,6 @@ import type { AppEnv } from "./bindings";
 const ADMIN_SESSION_COOKIE = "uc_admin_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 
-function decodeBasicAuth(header: string) {
-	const [scheme, value] = header.split(" ");
-	if (scheme !== "Basic" || !value) return null;
-
-	try {
-		const decoded = atob(value);
-		const separator = decoded.indexOf(":");
-		if (separator === -1) return null;
-
-		return {
-			username: decoded.slice(0, separator),
-			password: decoded.slice(separator + 1),
-		};
-	} catch {
-		return null;
-	}
-}
-
 function base64UrlEncode(bytes: ArrayBuffer | Uint8Array) {
 	const array = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
 	let binary = "";
@@ -66,10 +48,6 @@ function getCookie(c: Context<{ Bindings: AppEnv }>, name: string) {
 		.find((part) => part.startsWith(`${name}=`));
 
 	return match ? decodeURIComponent(match.slice(name.length + 1)) : undefined;
-}
-
-function unauthorized(c: Context<{ Bindings: AppEnv }>) {
-	return c.text("Authentication required", 401);
 }
 
 function adminSecret(c: Context<{ Bindings: AppEnv }>) {
@@ -207,10 +185,5 @@ export async function requireAdmin(c: Context<{ Bindings: AppEnv }>) {
 
 	if (await hasValidAdminSession(c)) return;
 
-	const credentials = decodeBasicAuth(c.req.header("Authorization") ?? "");
-	if (!credentials) return c.redirect("/admin/login", 302);
-
-	if (credentials.username !== "admin" || credentials.password !== configuredKey) {
-		return unauthorized(c);
-	}
+	return c.redirect("/admin/login", 302);
 }
