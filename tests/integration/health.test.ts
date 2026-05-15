@@ -90,3 +90,66 @@ describe("Admin panel", () => {
 		expect(response.status).toBe(200);
 	});
 });
+
+describe("Public site", () => {
+	it("serves the public home page", async () => {
+		const response = await SELF.fetch("http://local.test/site");
+		const html = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(html).toContain("UbuntuCode");
+		expect(html).toContain("Projetos");
+		expect(html).toContain("Artigos");
+	});
+
+	it("serves public project detail pages", async () => {
+		const slug = `public-project-${crypto.randomUUID()}`;
+		await SELF.fetch("http://local.test/projects", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-api-key": "test-api-key",
+			},
+			body: JSON.stringify({
+				slug,
+				title: "Projeto publico",
+				summary: "Resumo publico",
+				status: "active",
+			}),
+		});
+
+		const response = await SELF.fetch(`http://local.test/site/projects/${slug}`);
+		const html = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(html).toContain("Projeto publico");
+		expect(html).toContain("Resumo publico");
+	});
+
+	it("serves public article detail pages", async () => {
+		const slug = `public-article-${crypto.randomUUID()}`;
+		await SELF.fetch("http://local.test/articles", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-api-key": "test-api-key",
+			},
+			body: JSON.stringify({
+				slug,
+				title: "Artigo publico",
+				excerpt: "Resumo do artigo publico",
+				content: "Primeiro paragrafo.\n\nSegundo paragrafo.",
+				status: "published",
+				published_at: "2026-05-14T00:00:00.000Z",
+			}),
+		});
+
+		const response = await SELF.fetch(`http://local.test/site/articles/${slug}`);
+		const html = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(html).toContain("Artigo publico");
+		expect(html).toContain("Primeiro paragrafo.");
+		expect(html).toContain("Segundo paragrafo.");
+	});
+});

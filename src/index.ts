@@ -34,6 +34,13 @@ import {
 	setAdminSessionCookie,
 	verifyAdminPassword,
 } from "./adminAuth";
+import {
+	renderArticle,
+	renderArticles,
+	renderHome,
+	renderProject,
+	renderProjects,
+} from "./publicSite";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: AppEnv }>();
@@ -83,6 +90,12 @@ app.post("/admin/logout", (c) => {
 
 	return c.redirect("/admin/login", 302);
 });
+
+app.get("/site", renderHome);
+app.get("/site/projects", renderProjects);
+app.get("/site/projects/:slug", renderProject);
+app.get("/site/articles", renderArticles);
+app.get("/site/articles/:slug", renderArticle);
 
 app.onError((err, c) => {
 	if (err instanceof ApiException) {
