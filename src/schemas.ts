@@ -49,6 +49,26 @@ export const userUpdateSchema = userCreateSchema.partial().refine(
 	"Provide at least one field to update.",
 );
 
+export const adminUserSchema = z.object({
+	id: z.number().int(),
+	email: z.string().email(),
+	name: z.string(),
+	role: z.enum(["admin", "editor"]),
+	created_at: z.string(),
+	updated_at: z.string(),
+});
+
+export const adminUserCreateSchema = z.object({
+	email: z.string().email(),
+	name: z.string().min(1),
+	password: z.string().min(8),
+	role: z.enum(["admin", "editor"]).default("admin"),
+});
+
+export const adminUserUpdateSchema = adminUserCreateSchema
+	.partial()
+	.refine((data) => Object.keys(data).length > 0, "Provide at least one field to update.");
+
 export const projectSchema = z.object({
 	id: z.number().int(),
 	slug: z.string(),

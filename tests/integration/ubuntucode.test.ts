@@ -221,6 +221,40 @@ describe("UbuntuCode API", () => {
 		expect(updated.result.role).toBe("admin");
 	});
 
+	it("creates admin panel users with hashed passwords", async () => {
+		const email = `admin-${crypto.randomUUID()}@ubuntucode.com`;
+		const response = await SELF.fetch("http://local.test/admin-users", {
+			method: "POST",
+			headers: authHeaders,
+			body: JSON.stringify({
+				email,
+				name: "Novo Admin",
+				password: "senha-segura-123",
+				role: "editor",
+			}),
+		});
+		const body = await response.json<{
+			result: { id: number; email: string; role: string; password_hash?: string };
+		}>();
+
+		expect(response.status).toBe(201);
+		expect(body.result.email).toBe(email);
+		expect(body.result.role).toBe("editor");
+		expect(body.result.password_hash).toBeUndefined();
+
+		const form = new FormData();
+		form.set("email", email);
+		form.set("password", "senha-segura-123");
+		const loginResponse = await SELF.fetch("http://local.test/admin/login", {
+			method: "POST",
+			body: form,
+			redirect: "manual",
+		});
+
+		expect(loginResponse.status).toBe(302);
+		expect(loginResponse.headers.get("location")).toBe("/admin");
+	});
+
 	it("stores webhook events", async () => {
 		const response = await SELF.fetch("http://local.test/webhooks/events", {
 			method: "POST",

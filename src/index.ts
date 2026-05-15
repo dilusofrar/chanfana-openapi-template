@@ -9,6 +9,12 @@ import {
 	ArticleUpdate,
 } from "./endpoints/articles";
 import {
+	AdminUserCreate,
+	AdminUserDelete,
+	AdminUserList,
+	AdminUserUpdate,
+} from "./endpoints/adminUsers";
+import {
 	AiAssist,
 	AiDraftCreate,
 	AiDraftList,
@@ -236,6 +242,10 @@ openapi.post("/users", UserCreate);
 openapi.get("/users/:id", UserRead);
 openapi.patch("/users/:id", UserUpdate);
 openapi.delete("/users/:id", UserDelete);
+openapi.get("/admin-users", AdminUserList);
+openapi.post("/admin-users", AdminUserCreate);
+openapi.patch("/admin-users/:id", AdminUserUpdate);
+openapi.delete("/admin-users/:id", AdminUserDelete);
 openapi.get("/projects", ProjectList);
 openapi.post("/projects", ProjectCreate);
 openapi.get("/projects/:slug", ProjectRead);

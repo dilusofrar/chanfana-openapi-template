@@ -634,6 +634,7 @@ export const adminHtml = String.raw`<!doctype html>
 			projects: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M6 7V5h12v2"/><rect x="4" y="7" width="16" height="13" rx="2"/></svg>',
 			articles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>',
 			users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+			admins: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V5l8-3 8 3Z"/><path d="m9 12 2 2 4-4"/></svg>',
 			leads: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>',
 			webhooks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 16.98A6 6 0 0 0 12 7h-1"/><path d="M8 7H5"/><path d="m8 4-3 3 3 3"/><path d="M6 17a6 6 0 0 0 6-10"/><path d="M16 17h3"/><path d="m16 20 3-3-3-3"/></svg>',
 			history: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 5 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>',
@@ -680,6 +681,14 @@ export const adminHtml = String.raw`<!doctype html>
 				id: "id",
 				columns: ["id", "email", "name", "role"],
 				fields: [["email", "Email"], ["name", "Nome"], ["role", "Papel", "select", ["member", "admin"]]]
+			},
+			admins: {
+				title: "Admins",
+				subtitle: "Crie logins reais para acessar o painel.",
+				path: "/admin-users",
+				id: "id",
+				columns: ["id", "email", "name", "role"],
+				fields: [["email", "Email"], ["name", "Nome"], ["password", "Senha"], ["role", "Papel", "select", ["admin", "editor"]]]
 			},
 			leads: {
 				title: "Leads",
@@ -1085,7 +1094,7 @@ export const adminHtml = String.raw`<!doctype html>
 			box.scrollTop = box.scrollHeight;
 		}
 		async function loadMetrics() {
-			const names = ["projects", "articles", "users", "leads", "drafts"];
+			const names = ["projects", "articles", "users", "admins", "leads", "drafts"];
 			await Promise.all(names.map(async (name) => {
 				try {
 					state.metrics[name] = (await request(resources[name].path)).length;

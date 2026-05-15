@@ -77,6 +77,8 @@ The admin can manage projects, articles, users, leads, webhooks, and AI workflow
 
 When `ADMIN_PASSWORD` is configured, the Worker bootstraps the first admin user as `admin@ubuntucode.com` with a PBKDF2 password hash in D1. The old password-only login remains as a fallback while no dedicated admin user is present.
 
+To create more panel logins, open **Admin > Admins** and create a user with email, name, password, and role. These users are stored in `admin_users` with PBKDF2 password hashes and can log in at `/admin/login`.
+
 ## Local Setup
 
 Create `.dev.vars` for local development:
