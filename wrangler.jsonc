@@ -12,6 +12,9 @@
 	"vars": {
 		"ENVIRONMENT": "production"
 	},
+	"ai": {
+		"binding": "AI"
+	},
 	"routes": [
 		{
 			"pattern": "api.ubuntucode.com",

@@ -25,11 +25,14 @@ import {
 } from "./endpoints/users";
 import { WebhookList, WebhookRead, WebhookReceive } from "./endpoints/webhooks";
 import type { AppEnv } from "./bindings";
-import { adminHtml } from "./admin";
+import { adminHtml, adminLoginHtml } from "./admin";
 import {
+	clearAdminSessionCookie,
 	createAdminSession,
+	hasValidAdminSession,
 	requireAdmin,
 	setAdminSessionCookie,
+	verifyAdminPassword,
 } from "./adminAuth";
 
 // Start a Hono app
@@ -53,6 +56,32 @@ app.get("/admin", async (c) => {
 	setAdminSessionCookie(c, session);
 
 	return c.html(adminHtml);
+});
+
+app.get("/admin/login", async (c) => {
+	if (await hasValidAdminSession(c)) return c.redirect("/admin", 302);
+
+	return c.html(adminLoginHtml);
+});
+
+app.post("/admin/login", async (c) => {
+	const form = await c.req.raw.formData();
+	const password = String(form.get("password") ?? "");
+
+	if (!verifyAdminPassword(c, password)) {
+		return c.redirect("/admin/login?error=1", 302);
+	}
+
+	const session = await createAdminSession(c.env.API_KEY ?? "");
+	setAdminSessionCookie(c, session);
+
+	return c.redirect("/admin", 302);
+});
+
+app.post("/admin/logout", (c) => {
+	clearAdminSessionCookie(c);
+
+	return c.redirect("/admin/login", 302);
 });
 
 app.onError((err, c) => {

@@ -1,3 +1,133 @@
+export const adminLoginHtml = String.raw`<!doctype html>
+<html lang="pt-BR">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Entrar - UbuntuCode Admin</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--ink: #172026;
+			--muted: #65727d;
+			--line: #d9e0e6;
+			--brand: #0f766e;
+			--accent: #b45309;
+			font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			background: #f4f7f9;
+			color: var(--ink);
+			padding: 22px;
+		}
+		.login {
+			width: min(420px, 100%);
+			background: white;
+			border: 1px solid var(--line);
+			border-radius: 8px;
+			box-shadow: 0 18px 50px rgba(20, 37, 49, 0.12);
+			overflow: hidden;
+		}
+		.head {
+			background: #122029;
+			color: white;
+			padding: 22px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+		.logo {
+			width: 42px;
+			height: 42px;
+			border-radius: 8px;
+			background: linear-gradient(135deg, #11a39a, #d97706);
+			display: grid;
+			place-items: center;
+			font-weight: 800;
+		}
+		h1 { margin: 0; font-size: 20px; }
+		p { margin: 5px 0 0; color: #b6c5ce; font-size: 13px; }
+		form {
+			padding: 22px;
+			display: grid;
+			gap: 14px;
+		}
+		label {
+			display: grid;
+			gap: 7px;
+			color: var(--muted);
+			font-size: 13px;
+			font-weight: 650;
+		}
+		input {
+			width: 100%;
+			border: 1px solid var(--line);
+			border-radius: 7px;
+			padding: 12px;
+			font: inherit;
+		}
+		input:focus {
+			outline: none;
+			border-color: var(--brand);
+			box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+		}
+		button {
+			min-height: 42px;
+			border: 0;
+			border-radius: 7px;
+			background: var(--ink);
+			color: white;
+			font: inherit;
+			cursor: pointer;
+		}
+		.note {
+			color: var(--muted);
+			font-size: 12px;
+			line-height: 1.45;
+		}
+		.error {
+			background: #fef2f2;
+			color: #b91c1c;
+			border: 1px solid #fecaca;
+			border-radius: 7px;
+			padding: 10px 12px;
+			font-size: 13px;
+			display: none;
+		}
+		.error.show { display: block; }
+	</style>
+</head>
+<body>
+	<section class="login">
+		<div class="head">
+			<div class="logo">UC</div>
+			<div>
+				<h1>UbuntuCode Admin</h1>
+				<p>Acesso operacional</p>
+			</div>
+		</div>
+		<form method="post" action="/admin/login">
+			<div class="error" id="error">Senha inválida.</div>
+			<label>
+				Senha de administrador
+				<input name="password" type="password" autocomplete="current-password" autofocus required />
+			</label>
+			<button type="submit">Entrar</button>
+			<div class="note">Use a mesma API_KEY configurada no Worker. Depois do login, a sessão fica ativa por 8 horas neste navegador.</div>
+		</form>
+	</section>
+	<script>
+		if (new URLSearchParams(location.search).get("error")) {
+			document.getElementById("error").classList.add("show");
+		}
+	</script>
+</body>
+</html>`;
+
 export const adminHtml = String.raw`<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -343,9 +473,11 @@ export const adminHtml = String.raw`<!doctype html>
 			</div>
 			<nav class="nav" id="nav"></nav>
 			<div class="keybox">
-				<label for="apiKey">Chave manual</label>
-				<input id="apiKey" type="password" autocomplete="off" placeholder="Opcional" />
-				<button id="saveKey" type="button">Usar fallback</button>
+				<label>Sessão</label>
+				<div style="color:#dce7ed;font-size:13px;line-height:1.45">Conectado por cookie seguro.</div>
+				<form method="post" action="/admin/logout" style="padding:0;display:block">
+					<button type="submit">Sair</button>
+				</form>
 			</div>
 		</aside>
 		<main class="main">
@@ -441,8 +573,6 @@ export const adminHtml = String.raw`<!doctype html>
 		};
 		const state = { current: "projects", rows: [], editing: null, metrics: {} };
 		const el = (id) => document.getElementById(id);
-		const apiKey = () => localStorage.getItem("ubuntucode.apiKey") || "";
-
 		function toast(message) {
 			const node = el("toast");
 			node.textContent = message;
@@ -452,7 +582,6 @@ export const adminHtml = String.raw`<!doctype html>
 		function headers(json = true) {
 			const h = {};
 			if (json) h["Content-Type"] = "application/json";
-			if (apiKey()) h["x-api-key"] = apiKey();
 			return h;
 		}
 		async function request(path, options = {}) {
@@ -636,18 +765,12 @@ export const adminHtml = String.raw`<!doctype html>
 				el("healthText").textContent = "API indisponivel";
 			}
 		}
-		el("saveKey").addEventListener("click", () => {
-			localStorage.setItem("ubuntucode.apiKey", el("apiKey").value.trim());
-			toast("Fallback salvo neste navegador");
-			load();
-		});
 		el("clearForm").addEventListener("click", () => {
 			state.editing = null;
 			renderForm(resources[state.current]);
 		});
 		el("refresh").addEventListener("click", load);
 		el("editor").addEventListener("submit", submitForm);
-		el("apiKey").value = apiKey();
 		checkHealth();
 		load();
 	</script>

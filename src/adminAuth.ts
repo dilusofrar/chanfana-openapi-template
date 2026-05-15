@@ -69,8 +69,6 @@ function getCookie(c: Context<{ Bindings: AppEnv }>, name: string) {
 }
 
 function unauthorized(c: Context<{ Bindings: AppEnv }>) {
-	c.header("WWW-Authenticate", 'Basic realm="UbuntuCode Admin"');
-
 	return c.text("Authentication required", 401);
 }
 
@@ -109,6 +107,22 @@ export function setAdminSessionCookie(
 	);
 }
 
+export function clearAdminSessionCookie(c: Context<{ Bindings: AppEnv }>) {
+	c.header(
+		"Set-Cookie",
+		`${ADMIN_SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`,
+	);
+}
+
+export function verifyAdminPassword(
+	c: Context<{ Bindings: AppEnv }>,
+	password: string,
+) {
+	const configuredKey = c.env.API_KEY;
+
+	return Boolean(configuredKey && password === configuredKey);
+}
+
 export async function requireAdmin(c: Context<{ Bindings: AppEnv }>) {
 	const configuredKey = c.env.API_KEY;
 	if (!configuredKey) {
@@ -118,7 +132,7 @@ export async function requireAdmin(c: Context<{ Bindings: AppEnv }>) {
 	if (await hasValidAdminSession(c)) return;
 
 	const credentials = decodeBasicAuth(c.req.header("Authorization") ?? "");
-	if (!credentials) return unauthorized(c);
+	if (!credentials) return c.redirect("/admin/login", 302);
 
 	if (credentials.username !== "admin" || credentials.password !== configuredKey) {
 		return unauthorized(c);

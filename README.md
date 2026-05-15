@@ -41,12 +41,11 @@ Open:
 https://api.ubuntucode.com/admin
 ```
 
-The browser will ask for HTTP Basic Auth credentials:
+The panel shows its own login screen. Use:
 
-- username: `admin`
 - password: your production `API_KEY` secret
 
-After login, the Worker sets a short-lived `HttpOnly` admin session cookie. The panel can call protected API routes without typing the key again. The sidebar key field remains available only as a manual fallback for API clients or unusual browser settings.
+After login, the Worker sets a short-lived `HttpOnly` admin session cookie. The panel can call protected API routes without typing the key again.
 
 ## Local Setup
 
@@ -106,4 +105,4 @@ The API stores:
 - articles
 - webhook events
 
-The `POST /ai/assist` endpoint is already shaped for AI workflows. It returns a fallback response when no AI provider binding is configured, so the route remains stable while the provider is plugged in later.
+The `POST /ai/assist` endpoint uses the Cloudflare Workers AI binding in production with `@cf/meta/llama-3.1-8b-instruct`. In local/test environments without an AI binding, it returns a fallback response so development stays fast and offline-friendly.
