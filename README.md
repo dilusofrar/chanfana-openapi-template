@@ -6,12 +6,13 @@ Cloudflare Worker API for `api.ubuntucode.com`, built with Hono, Chanfana, gener
 
 - `GET /health` returns service health.
 - `GET /admin` serves the browser admin console.
-- `GET /site` serves the public UbuntuCode website.
+- `GET /` serves the public UbuntuCode website.
+- `GET /site` keeps the legacy public website alias.
 - `GET /site/projects` lists public active projects.
 - `GET /site/projects/:slug` shows one public project.
 - `GET /site/articles` lists public published articles.
 - `GET /site/articles/:slug` shows one public article.
-- `GET /` serves Swagger/OpenAPI documentation.
+- `GET /docs` serves Swagger/OpenAPI documentation.
 - `GET /openapi.json` serves the generated OpenAPI schema.
 - `GET /projects` lists projects.
 - `GET /projects/:slug` reads one project.

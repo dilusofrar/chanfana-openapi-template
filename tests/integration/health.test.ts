@@ -92,14 +92,31 @@ describe("Admin panel", () => {
 });
 
 describe("Public site", () => {
-	it("serves the public home page", async () => {
-		const response = await SELF.fetch("http://local.test/site");
+	it("serves the public home page at the root", async () => {
+		const response = await SELF.fetch("http://local.test/");
 		const html = await response.text();
 
 		expect(response.status).toBe(200);
 		expect(html).toContain("UbuntuCode");
 		expect(html).toContain("Projetos");
 		expect(html).toContain("Artigos");
+		expect(html).toContain('href="/docs"');
+	});
+
+	it("keeps the legacy public site alias", async () => {
+		const response = await SELF.fetch("http://local.test/site");
+		const html = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(html).toContain("UbuntuCode");
+	});
+
+	it("serves OpenAPI documentation under /docs", async () => {
+		const response = await SELF.fetch("http://local.test/docs");
+		const html = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(html).toContain("SwaggerUI");
 	});
 
 	it("serves public project detail pages", async () => {

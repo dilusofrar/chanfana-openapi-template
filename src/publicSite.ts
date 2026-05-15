@@ -270,12 +270,12 @@ function layout(title: string, body: string) {
 <body>
 	<header class="header">
 		<nav class="nav">
-			<a class="brand" href="/site"><span class="logo">UC</span><span>UbuntuCode</span></a>
+			<a class="brand" href="/"><span class="logo">UC</span><span>UbuntuCode</span></a>
 			<div class="links">
 				<a href="/site/projects">Projetos</a>
 				<a href="/site/articles">Artigos</a>
 				<a href="/admin">Admin</a>
-				<a href="/">API</a>
+				<a href="/docs">API</a>
 			</div>
 		</nav>
 	</header>

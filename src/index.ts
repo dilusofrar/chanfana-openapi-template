@@ -91,6 +91,7 @@ app.post("/admin/logout", (c) => {
 	return c.redirect("/admin/login", 302);
 });
 
+app.get("/", renderHome);
 app.get("/site", renderHome);
 app.get("/site/projects", renderProjects);
 app.get("/site/projects/:slug", renderProject);
@@ -120,7 +121,7 @@ app.onError((err, c) => {
 
 // Setup OpenAPI registry
 const openapi = fromHono(app, {
-	docs_url: "/",
+	docs_url: "/docs",
 	schema: {
 		info: {
 			title: "UbuntuCode API",
