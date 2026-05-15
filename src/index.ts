@@ -26,7 +26,11 @@ import {
 import { WebhookList, WebhookRead, WebhookReceive } from "./endpoints/webhooks";
 import type { AppEnv } from "./bindings";
 import { adminHtml } from "./admin";
-import { requireAdmin } from "./adminAuth";
+import {
+	createAdminSession,
+	requireAdmin,
+	setAdminSessionCookie,
+} from "./adminAuth";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: AppEnv }>();
@@ -41,9 +45,12 @@ app.get("/health", (c) =>
 	}),
 );
 
-app.get("/admin", (c) => {
-	const unauthorized = requireAdmin(c);
+app.get("/admin", async (c) => {
+	const unauthorized = await requireAdmin(c);
 	if (unauthorized) return unauthorized;
+
+	const session = await createAdminSession(c.env.API_KEY ?? "");
+	setAdminSessionCookie(c, session);
 
 	return c.html(adminHtml);
 });

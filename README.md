@@ -46,7 +46,7 @@ The browser will ask for HTTP Basic Auth credentials:
 - username: `admin`
 - password: your production `API_KEY` secret
 
-Inside the panel, paste the same API key in the sidebar so create, update, delete, webhook audit, and AI actions can call the protected API routes.
+After login, the Worker sets a short-lived `HttpOnly` admin session cookie. The panel can call protected API routes without typing the key again. The sidebar key field remains available only as a manual fallback for API clients or unusual browser settings.
 
 ## Local Setup
 

@@ -343,9 +343,9 @@ export const adminHtml = String.raw`<!doctype html>
 			</div>
 			<nav class="nav" id="nav"></nav>
 			<div class="keybox">
-				<label for="apiKey">API key</label>
-				<input id="apiKey" type="password" autocomplete="off" placeholder="Cole sua chave" />
-				<button id="saveKey" type="button">Salvar chave</button>
+				<label for="apiKey">Chave manual</label>
+				<input id="apiKey" type="password" autocomplete="off" placeholder="Opcional" />
+				<button id="saveKey" type="button">Usar fallback</button>
 			</div>
 		</aside>
 		<main class="main">
@@ -606,7 +606,7 @@ export const adminHtml = String.raw`<!doctype html>
 					state.metrics[name] = "–";
 				}
 			}));
-			state.metrics.webhooks = apiKey() ? "●" : "key";
+			state.metrics.webhooks = "●";
 			renderMetrics();
 		}
 		async function load() {
@@ -638,7 +638,7 @@ export const adminHtml = String.raw`<!doctype html>
 		}
 		el("saveKey").addEventListener("click", () => {
 			localStorage.setItem("ubuntucode.apiKey", el("apiKey").value.trim());
-			toast("Chave salva neste navegador");
+			toast("Fallback salvo neste navegador");
 			load();
 		});
 		el("clearForm").addEventListener("click", () => {

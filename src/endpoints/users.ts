@@ -53,7 +53,7 @@ export class UserCreate extends OpenAPIRoute {
 	};
 
 	async handle(c: AppContext) {
-		const unauthorized = requireApiKey(c);
+		const unauthorized = await requireApiKey(c);
 		if (unauthorized) return unauthorized;
 
 		const data = await this.getValidatedData<typeof this.schema>();
@@ -109,7 +109,7 @@ export class UserUpdate extends OpenAPIRoute {
 	};
 
 	async handle(c: AppContext) {
-		const unauthorized = requireApiKey(c);
+		const unauthorized = await requireApiKey(c);
 		if (unauthorized) return unauthorized;
 
 		const data = await this.getValidatedData<typeof this.schema>();
@@ -151,7 +151,7 @@ export class UserDelete extends OpenAPIRoute {
 	};
 
 	async handle(c: AppContext) {
-		const unauthorized = requireApiKey(c);
+		const unauthorized = await requireApiKey(c);
 		if (unauthorized) return unauthorized;
 
 		const data = await this.getValidatedData<typeof this.schema>();

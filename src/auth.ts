@@ -1,7 +1,8 @@
 import type { Context } from "hono";
 import type { AppEnv } from "./bindings";
+import { hasValidAdminSession } from "./adminAuth";
 
-export function requireApiKey(c: Context<{ Bindings: AppEnv }>) {
+export async function requireApiKey(c: Context<{ Bindings: AppEnv }>) {
 	const configuredKey = c.env.API_KEY;
 	const providedKey = c.req.header("x-api-key");
 
@@ -19,6 +20,8 @@ export function requireApiKey(c: Context<{ Bindings: AppEnv }>) {
 			503,
 		);
 	}
+
+	if (await hasValidAdminSession(c)) return;
 
 	if (providedKey !== configuredKey) {
 		return c.json(
