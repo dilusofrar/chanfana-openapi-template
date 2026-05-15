@@ -26,6 +26,7 @@ import {
 import { WebhookList, WebhookRead, WebhookReceive } from "./endpoints/webhooks";
 import type { AppEnv } from "./bindings";
 import { adminHtml } from "./admin";
+import { requireAdmin } from "./adminAuth";
 
 // Start a Hono app
 const app = new Hono<{ Bindings: AppEnv }>();
@@ -40,7 +41,12 @@ app.get("/health", (c) =>
 	}),
 );
 
-app.get("/admin", (c) => c.html(adminHtml));
+app.get("/admin", (c) => {
+	const unauthorized = requireAdmin(c);
+	if (unauthorized) return unauthorized;
+
+	return c.html(adminHtml);
+});
 
 app.onError((err, c) => {
 	if (err instanceof ApiException) {

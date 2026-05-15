@@ -21,8 +21,22 @@ describe("Health endpoint", () => {
 });
 
 describe("Admin panel", () => {
-	it("serves the admin console", async () => {
+	it("requires authentication", async () => {
 		const response = await SELF.fetch("http://local.test/admin");
+
+		expect(response.status).toBe(401);
+		expect(response.headers.get("www-authenticate")).toContain(
+			"UbuntuCode Admin",
+		);
+	});
+
+	it("serves the admin console with valid credentials", async () => {
+		const credentials = btoa("admin:test-api-key");
+		const response = await SELF.fetch("http://local.test/admin", {
+			headers: {
+				Authorization: `Basic ${credentials}`,
+			},
+		});
 		const html = await response.text();
 
 		expect(response.status).toBe(200);

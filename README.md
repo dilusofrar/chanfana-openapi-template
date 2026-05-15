@@ -33,6 +33,21 @@ Protected routes require the `x-api-key` header.
 - `POST /webhooks/events`
 - `POST /ai/assist`
 
+## Admin Console
+
+Open:
+
+```text
+https://api.ubuntucode.com/admin
+```
+
+The browser will ask for HTTP Basic Auth credentials:
+
+- username: `admin`
+- password: your production `API_KEY` secret
+
+Inside the panel, paste the same API key in the sidebar so create, update, delete, webhook audit, and AI actions can call the protected API routes.
+
 ## Local Setup
 
 Create `.dev.vars` for local development:
