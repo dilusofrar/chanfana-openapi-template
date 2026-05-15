@@ -101,6 +101,11 @@ describe("Public site", () => {
 		expect(html).toContain("Projetos");
 		expect(html).toContain("Artigos");
 		expect(html).toContain('href="/docs"');
+		expect(html).toContain(
+			'<link rel="canonical" href="https://api.ubuntucode.com/"',
+		);
+		expect(html).toContain("APIs serverless");
+		expect(html).toContain("IA aplicada");
 	});
 
 	it("keeps the legacy public site alias", async () => {
@@ -141,6 +146,10 @@ describe("Public site", () => {
 		expect(response.status).toBe(200);
 		expect(html).toContain("Projeto publico");
 		expect(html).toContain("Resumo publico");
+		expect(html).toContain(
+			`<link rel="canonical" href="https://api.ubuntucode.com/site/projects/${slug}"`,
+		);
+		expect(html).toContain("Todos os projetos");
 	});
 
 	it("serves public article detail pages", async () => {
@@ -168,5 +177,7 @@ describe("Public site", () => {
 		expect(html).toContain("Artigo publico");
 		expect(html).toContain("Primeiro paragrafo.");
 		expect(html).toContain("Segundo paragrafo.");
+		expect(html).toContain('property="og:type" content="article"');
+		expect(html).toContain("Todos os artigos");
 	});
 });
